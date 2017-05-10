@@ -23,13 +23,13 @@
 # only
 
 """
-Magento responses for calls done by the connector.
+Shopware responses for calls done by the connector.
 
 This set of responses has been recorded for the synchronizations
-with a Magento 1.7 version with demo data.
+with a Shopware 1.7 version with demo data.
 
-It has been recorded using ``magentoerpconnect.unit.backend_adapter.record``
-and ``magentoerpconnect.unit.backend_adapter.output_recorder``
+It has been recorded using ``shopwareerpconnect.unit.backend_adapter.record``
+and ``shopwareerpconnect.unit.backend_adapter.output_recorder``
 
 This set of data contains examples of imported products.
 """
@@ -105,9 +105,9 @@ simple_product_and_images = {
                                                  'types': ['small_image'],
                                                  'url': 'http://localhost:9100/media/catalog/product/i/n/ink-eater-krylon-bombear-destroyed-tee-1.jpg'},
                                                 {'exclude': '0',
-                                                 'file': '/m/a/magentoerpconnect_1.png',
+                                                 'file': '/m/a/shopwareerpconnect_1.png',
                                                  'label': '',
                                                  'position': '4',
                                                  'types': [],
-                                                 'url': 'http://localhost:9100/media/catalog/product/m/a/magentoerpconnect_1.png'}],
+                                                 'url': 'http://localhost:9100/media/catalog/product/m/a/shopwareerpconnect_1.png'}],
 }

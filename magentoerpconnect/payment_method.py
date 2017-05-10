@@ -9,8 +9,8 @@ class PaymentMethod(models.Model):
         selection=[('open', 'Validate'),
                    ('paid', 'Paid')],
         string='Create invoice on action',
-        help="Should the invoice be created in Magento "
+        help="Should the invoice be created in Shopware "
              "when it is validated or when it is paid in OpenERP?\n"
              "If nothing is set, the option falls back to the same option "
-             "on the Magento store related to the sales order.",
+             "on the Shopware store related to the sales order.",
     )

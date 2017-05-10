@@ -28,17 +28,17 @@ import mock
 from contextlib import contextmanager
 import openerp.tests.common as common
 from openerp.addons.connector.session import ConnectorSession
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_batch,
 )
-from openerp.addons.magentoerpconnect.unit.backend_adapter import call_to_key
-from .data_base import magento_base_responses
+from openerp.addons.shopwareerpconnect.unit.backend_adapter import call_to_key
+from .data_base import shopware_base_responses
 
 
 class TestResponder(object):
-    """ Used to simulate the calls to Magento.
+    """ Used to simulate the calls to Shopware.
 
-    For a call (request) to Magento, returns a stored
+    For a call (request) to Shopware, returns a stored
     response.
     """
 
@@ -49,7 +49,7 @@ class TestResponder(object):
         function which transform the request calls in a
         hashable form.
 
-        :param responses: responses returned by Magento
+        :param responses: responses returned by Shopware
         :param call_to_key: function to build the key
             from the method and arguments
         :type responses: dict
@@ -62,7 +62,7 @@ class TestResponder(object):
         self._calls.append((method, arguments))
         key = self.call_to_key(method, arguments)
         assert key in self._responses, (
-            "%s not found in magento responses" % str(key))
+            "%s not found in shopware responses" % str(key))
         if hasattr(self._responses[key], '__call__'):
             return self._responses[key]()
         else:
@@ -75,7 +75,7 @@ def mock_job_delay_to_direct(job_path):
 
     job_path is the python path, such as::
 
-      openerp.addons.magentoerpconnect.stock_picking.export_picking_done
+      openerp.addons.shopwareerpconnect.stock_picking.export_picking_done
 
     """
     job_module, job_name = job_path.rsplit('.', 1)
@@ -128,18 +128,18 @@ def mock_api(responses, key_func=None):
     and the responses as values. It can also be a list of such dicts.
     When it is a list, the key is searched in the firsts dicts first.
 
-    :param responses: responses returned by Magento
+    :param responses: responses returned by Shopware
     :type responses: dict
     """
     if isinstance(responses, (list, tuple)):
         responses = ChainMap(*responses)
-    get_magento_response = TestResponder(responses, key_func=key_func)
-    with mock.patch('magento.API') as API:
-        api_mock = mock.MagicMock(name='magento.api')
+    get_shopware_response = TestResponder(responses, key_func=key_func)
+    with mock.patch('shopware.API') as API:
+        api_mock = mock.MagicMock(name='shopware.api')
         API.return_value = api_mock
         api_mock.__enter__.return_value = api_mock
-        api_mock.call.side_effect = get_magento_response
-        yield get_magento_response._calls
+        api_mock.call.side_effect = get_shopware_response
+        yield get_shopware_response._calls
 
 
 class MockResponseImage(object):
@@ -163,14 +163,14 @@ def mock_urlopen_image():
         yield
 
 
-class MagentoHelper(object):
+class ShopwareHelper(object):
 
     def __init__(self, cr, registry, model_name):
         self.cr = cr
         self.model = registry(model_name)
 
     def get_next_id(self):
-        self.cr.execute("SELECT max(magento_id::int) FROM %s " %
+        self.cr.execute("SELECT max(shopware_id::int) FROM %s " %
                         self.model._table)
         result = self.cr.fetchone()
         if result:
@@ -179,21 +179,21 @@ class MagentoHelper(object):
             return 1
 
 
-class SetUpMagentoBase(common.TransactionCase):
-    """ Base class - Test the imports from a Magento Mock.
+class SetUpShopwareBase(common.TransactionCase):
+    """ Base class - Test the imports from a Shopware Mock.
 
-    The data returned by Magento are those created for the
-    demo version of Magento on a standard 1.7 version.
+    The data returned by Shopware are those created for the
+    demo version of Shopware on a standard 1.7 version.
     """
 
     def setUp(self):
-        super(SetUpMagentoBase, self).setUp()
-        self.backend_model = self.env['magento.backend']
+        super(SetUpShopwareBase, self).setUp()
+        self.backend_model = self.env['shopware.backend']
         self.session = ConnectorSession(self.env.cr, self.env.uid,
                                         context=self.env.context)
         warehouse = self.env.ref('stock.warehouse0')
         self.backend = self.backend_model.create(
-            {'name': 'Test Magento',
+            {'name': 'Test Shopware',
              'version': '1.7',
              'location': 'http://anyurl',
              'username': 'guewen',
@@ -215,15 +215,15 @@ class SetUpMagentoBase(common.TransactionCase):
              'payment_term_id': self.payment_term.id,
              'journal_id': journal.id})
 
-    def get_magento_helper(self, model_name):
-        return MagentoHelper(self.cr, self.registry, model_name)
+    def get_shopware_helper(self, model_name):
+        return ShopwareHelper(self.cr, self.registry, model_name)
 
 
-class SetUpMagentoSynchronized(SetUpMagentoBase):
+class SetUpShopwareSynchronized(SetUpShopwareBase):
 
     def setUp(self):
-        super(SetUpMagentoSynchronized, self).setUp()
-        with mock_api(magento_base_responses):
-            import_batch(self.session, 'magento.website', self.backend_id)
-            import_batch(self.session, 'magento.store', self.backend_id)
-            import_batch(self.session, 'magento.storeview', self.backend_id)
+        super(SetUpShopwareSynchronized, self).setUp()
+        with mock_api(shopware_base_responses):
+            import_batch(self.session, 'shopware.website', self.backend_id)
+            import_batch(self.session, 'shopware.store', self.backend_id)
+            import_batch(self.session, 'shopware.storeview', self.backend_id)

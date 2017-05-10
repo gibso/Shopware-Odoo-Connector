@@ -3,14 +3,14 @@
     <data>
 
         <record id="view_product_category_form" model="ir.ui.view">
-            <field name="name">product.category.form.magento</field>
+            <field name="name">product.category.form.shopware</field>
             <field name="model">product.category</field>
             <field name="inherit_id" ref="product.product_category_form_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//sheet/group[1]" position="inside">
                     <newline/>
-                    <group name="magento" string="Magento Bindings">
-                        <field name="magento_bind_ids" nolabel="1">
+                    <group name="shopware" string="Shopware Bindings">
+                        <field name="shopware_bind_ids" nolabel="1">
                             <tree>
                                 <field name="backend_id"/>
                             </tree>
@@ -20,27 +20,27 @@
             </field>
         </record>
 
-        <record id="view_magento_product_category_form" model="ir.ui.view">
-            <field name="name">magento.product.category.form</field>
-            <field name="model">magento.product.category</field>
+        <record id="view_shopware_product_category_form" model="ir.ui.view">
+            <field name="name">shopware.product.category.form</field>
+            <field name="model">shopware.product.category</field>
             <field name="arch" type="xml">
-                <form string="Magento Product Category">
+                <form string="Shopware Product Category">
                     <group>
                         <field name="backend_id"/>
-                        <field name="magento_id"/>
+                        <field name="shopware_id"/>
                         <field name="description"/>
-                        <field name="magento_parent_id"/>
-                        <field name="magento_child_ids"/>
+                        <field name="shopware_parent_id"/>
+                        <field name="shopware_child_ids"/>
                     </group>
                 </form>
             </field>
         </record>
 
-        <record id="view_magento_product_category_tree" model="ir.ui.view">
-            <field name="name">magento.product.category.tree</field>
-            <field name="model">magento.product.category</field>
+        <record id="view_shopware_product_category_tree" model="ir.ui.view">
+            <field name="name">shopware.product.category.tree</field>
+            <field name="model">shopware.product.category</field>
             <field name="arch" type="xml">
-                <tree string="Magento Product Category">
+                <tree string="Shopware Product Category">
                     <field name="backend_id"/>
                 </tree>
             </field>
@@ -55,8 +55,8 @@
                     <attribute name="invisible">0</attribute>
                 </page>
                 <page name="connector" position="inside">
-                    <group string="Magento Bindings">
-                        <field name="magento_bind_ids" nolabel="1">
+                    <group string="Shopware Bindings">
+                        <field name="shopware_bind_ids" nolabel="1">
                             <tree>
                                 <field name="backend_id"/>
                                 <field name="product_type"/>
@@ -67,14 +67,14 @@
             </field>
         </record>
 
-        <record id="view_magento_product_form" model="ir.ui.view">
-            <field name="name">magento.product.product.form</field>
-            <field name="model">magento.product.product</field>
+        <record id="view_shopware_product_form" model="ir.ui.view">
+            <field name="name">shopware.product.product.form</field>
+            <field name="model">shopware.product.product</field>
             <field name="arch" type="xml">
-                <form string="Magento Product">
+                <form string="Shopware Product">
                     <group>
                         <field name="backend_id"/>
-                        <field name="magento_id"/>
+                        <field name="shopware_id"/>
                         <field name="created_at" readonly="1"/>
                         <field name="updated_at" readonly="1"/>
                         <field name="product_type" readonly="1"/>
@@ -84,10 +84,10 @@
                         <field name="manage_stock"/>
                         <field name="backorders"/>
                         <div class="oe_inline">
-                            <label for="magento_qty" class="oe_inline" />
-                            <field name="magento_qty" readonly="1" class="oe_inline"
+                            <label for="shopware_qty" class="oe_inline" />
+                            <field name="shopware_qty" readonly="1" class="oe_inline"
                                 nolabel="1"/>
-                            <button name="recompute_magento_qty" string="(recompute)"
+                            <button name="recompute_shopware_qty" string="(recompute)"
                                 class="oe_link oe_inline" type="object"/>
                         </div>
                     </group>
@@ -95,11 +95,11 @@
             </field>
         </record>
 
-        <record id="view_magento_product_tree" model="ir.ui.view">
-            <field name="name">magento.product.product.tree</field>
-            <field name="model">magento.product.product</field>
+        <record id="view_shopware_product_tree" model="ir.ui.view">
+            <field name="name">shopware.product.product.tree</field>
+            <field name="model">shopware.product.product</field>
             <field name="arch" type="xml">
-                <tree string="Magento Product">
+                <tree string="Shopware Product">
                     <field name="backend_id"/>
                     <field name="product_type"/>
                 </tree>

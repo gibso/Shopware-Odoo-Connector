@@ -44,12 +44,12 @@ from .unit.backend_adapter import (GenericAdapter,
                                    )
 from .unit.mapper import normalize_datetime
 from .unit.import_synchronizer import (DelayedBatchImporter,
-                                       MagentoImporter,
+                                       ShopwareImporter,
                                        TranslationImporter,
                                        AddCheckpoint,
                                        )
 from .connector import get_environment
-from .backend import magento
+from .backend import shopware
 from .related_action import unwrap_binding
 
 _logger = logging.getLogger(__name__)
@@ -60,11 +60,11 @@ def chunks(items, length):
         yield items[index:index + length]
 
 
-class MagentoProductProduct(models.Model):
-    _name = 'magento.product.product'
-    _inherit = 'magento.binding'
+class ShopwareProductProduct(models.Model):
+    _name = 'shopware.product.product'
+    _inherit = 'shopware.binding'
     _inherits = {'product.product': 'openerp_id'}
-    _description = 'Magento Product'
+    _description = 'Shopware Product'
 
     @api.model
     def product_type_get(self):
@@ -83,13 +83,13 @@ class MagentoProductProduct(models.Model):
                                  required=True,
                                  ondelete='restrict')
     # XXX website_ids can be computed from categories
-    website_ids = fields.Many2many(comodel_name='magento.website',
+    website_ids = fields.Many2many(comodel_name='shopware.website',
                                    string='Websites',
                                    readonly=True)
-    created_at = fields.Date('Created At (on Magento)')
-    updated_at = fields.Date('Updated At (on Magento)')
+    created_at = fields.Date('Created At (on Shopware)')
+    updated_at = fields.Date('Updated At (on Shopware)')
     product_type = fields.Selection(selection='product_type_get',
-                                    string='Magento Product Type',
+                                    string='Shopware Product Type',
                                     default='simple',
                                     required=True)
     manage_stock = fields.Selection(
@@ -110,9 +110,9 @@ class MagentoProductProduct(models.Model):
         default='use_default',
         required=True,
     )
-    magento_qty = fields.Float(string='Computed Quantity',
+    shopware_qty = fields.Float(string='Computed Quantity',
                                help="Last computed quantity to send "
-                                    "on Magento.")
+                                    "on Shopware.")
     no_stock_sync = fields.Boolean(
         string='No Stock Synchronization',
         required=False,
@@ -123,12 +123,12 @@ class MagentoProductProduct(models.Model):
     RECOMPUTE_QTY_STEP = 1000  # products at a time
 
     @api.multi
-    def recompute_magento_qty(self):
+    def recompute_shopware_qty(self):
         """ Check if the quantity in the stock location configured
         on the backend has changed since the last export.
 
-        If it has changed, write the updated quantity on `magento_qty`.
-        The write on `magento_qty` will trigger an `on_record_write`
+        If it has changed, write the updated quantity on `shopware_qty`.
+        The write on `shopware_qty` will trigger an `on_record_write`
         event that will create an export job.
 
         It groups the products by backend to avoid to read the backend
@@ -140,17 +140,17 @@ class MagentoProductProduct(models.Model):
             backends[product.backend_id] |= product
 
         for backend, products in backends.iteritems():
-            self._recompute_magento_qty_backend(backend, products)
+            self._recompute_shopware_qty_backend(backend, products)
         return True
 
     @api.multi
-    def _recompute_magento_qty_backend(self, backend, products,
+    def _recompute_shopware_qty_backend(self, backend, products,
                                        read_fields=None):
         """ Recompute the products quantity for one backend.
 
         If field names are passed in ``read_fields`` (as a list), they
         will be read in the product that is used in
-        :meth:`~._magento_qty`.
+        :meth:`~._shopware_qty`.
 
         """
         if backend.product_stock_field_id:
@@ -160,7 +160,7 @@ class MagentoProductProduct(models.Model):
 
         location = backend.warehouse_id.lot_stock_id
 
-        product_fields = ['magento_qty', stock_field]
+        product_fields = ['shopware_qty', stock_field]
         if read_fields:
             product_fields += read_fields
 
@@ -168,22 +168,22 @@ class MagentoProductProduct(models.Model):
         for chunk_ids in chunks(products.ids, self.RECOMPUTE_QTY_STEP):
             records = self_with_location.browse(chunk_ids)
             for product in records.read(fields=product_fields):
-                new_qty = self._magento_qty(product,
+                new_qty = self._shopware_qty(product,
                                             backend,
                                             location,
                                             stock_field)
-                if new_qty != product['magento_qty']:
-                    self.browse(product['id']).magento_qty = new_qty
+                if new_qty != product['shopware_qty']:
+                    self.browse(product['id']).shopware_qty = new_qty
 
     @api.multi
-    def _magento_qty(self, product, backend, location, stock_field):
+    def _shopware_qty(self, product, backend, location, stock_field):
         """ Return the current quantity for one product.
 
         Can be inherited to change the way the quantity is computed,
         according to a backend / location.
 
         If you need to read additional fields on the product, see the
-        ``read_fields`` argument of :meth:`~._recompute_magento_qty_backend`
+        ``read_fields`` argument of :meth:`~._recompute_shopware_qty_backend`
 
         """
         return product[stock_field]
@@ -192,24 +192,24 @@ class MagentoProductProduct(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    magento_bind_ids = fields.One2many(
-        comodel_name='magento.product.product',
+    shopware_bind_ids = fields.One2many(
+        comodel_name='shopware.product.product',
         inverse_name='openerp_id',
-        string='Magento Bindings',
+        string='Shopware Bindings',
     )
 
 
-@magento
+@shopware
 class ProductProductAdapter(GenericAdapter):
-    _model_name = 'magento.product.product'
-    _magento_model = 'catalog_product'
+    _model_name = 'shopware.product.product'
+    _shopware_model = 'catalog_product'
     _admin_path = '/{model}/edit/id/{id}'
 
     def _call(self, method, arguments):
         try:
             return super(ProductProductAdapter, self)._call(method, arguments)
         except xmlrpclib.Fault as err:
-            # this is the error in the Magento API
+            # this is the error in the Shopware API
             # when the product does not exist
             if err.faultCode == 101:
                 raise IDMissingInBackend
@@ -231,9 +231,9 @@ class ProductProductAdapter(GenericAdapter):
         if to_date is not None:
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
-        # TODO add a search entry point on the Magento API
+        # TODO add a search entry point on the Shopware API
         return [int(row['product_id']) for row
-                in self._call('%s.list' % self._magento_model,
+                in self._call('%s.list' % self._shopware_model,
                               [filters] if filters else [{}])]
 
     def read(self, id, storeview_id=None, attributes=None):
@@ -264,14 +264,14 @@ class ProductProductAdapter(GenericAdapter):
                           [int(id), data])
 
 
-@magento
+@shopware
 class ProductBatchImporter(DelayedBatchImporter):
-    """ Import the Magento Products.
+    """ Import the Shopware Products.
 
     For every product category in the list, a delayed job is created.
     Import from a date
     """
-    _model_name = ['magento.product.product']
+    _model_name = ['shopware.product.product']
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -280,7 +280,7 @@ class ProductBatchImporter(DelayedBatchImporter):
         record_ids = self.backend_adapter.search(filters,
                                                  from_date=from_date,
                                                  to_date=to_date)
-        _logger.info('search for magento products %s returned %s',
+        _logger.info('search for shopware products %s returned %s',
                      filters, record_ids)
         for record_id in record_ids:
             self._import_record(record_id)
@@ -289,7 +289,7 @@ class ProductBatchImporter(DelayedBatchImporter):
 ProductBatchImport = ProductBatchImporter  # deprecated
 
 
-@magento
+@shopware
 class CatalogImageImporter(Importer):
     """ Import images for a record.
 
@@ -297,11 +297,11 @@ class CatalogImageImporter(Importer):
     For instance from the products importer.
     """
 
-    _model_name = ['magento.product.product',
+    _model_name = ['shopware.product.product',
                    ]
 
     def _get_images(self, storeview_id=None):
-        return self.backend_adapter.get_images(self.magento_id, storeview_id)
+        return self.backend_adapter.get_images(self.shopware_id, storeview_id)
 
     def _sort_images(self, images):
         """ Returns a list of images sorted by their priority.
@@ -354,8 +354,8 @@ class CatalogImageImporter(Importer):
         binding = model.browse(binding_id)
         binding.write({'image': base64.b64encode(binary)})
 
-    def run(self, magento_id, binding_id):
-        self.magento_id = magento_id
+    def run(self, shopware_id, binding_id):
+        self.shopware_id = shopware_id
         images = self._get_images()
         images = self._sort_images(images)
         binary = None
@@ -368,7 +368,7 @@ class CatalogImageImporter(Importer):
         self._write_image_data(binding_id, binary, image_data)
 
 
-@magento
+@shopware
 class BundleImporter(Importer):
     """ Can be inherited to change the way the bundle products are
     imported.
@@ -386,46 +386,46 @@ class BundleImporter(Importer):
     If you want to create a custom importer for the bundles, you have to
     declare the ConnectorUnit on your backend::
 
-        @magento_custom
+        @shopware_custom
         class XBundleImporter(BundleImporter):
-            _model_name = 'magento.product.product'
+            _model_name = 'shopware.product.product'
 
             # implement import_bundle
 
     If you want to create a generic module that import bundles, you have
     to replace the current ConnectorUnit::
 
-        @magento(replacing=BundleImporter)
+        @shopware(replacing=BundleImporter)
         class XBundleImporter(BundleImporter):
-            _model_name = 'magento.product.product'
+            _model_name = 'shopware.product.product'
 
             # implement import_bundle
 
     And to add the bundle type in the supported product types::
 
-        class magento_product_product(orm.Model):
-            _inherit = 'magento.product.product'
+        class shopware_product_product(orm.Model):
+            _inherit = 'shopware.product.product'
 
             def product_type_get(self, cr, uid, context=None):
-                types = super(magento_product_product, self).product_type_get(
+                types = super(shopware_product_product, self).product_type_get(
                     cr, uid, context=context)
                 if 'bundle' not in [item[0] for item in types]:
                     types.append(('bundle', 'Bundle'))
                 return types
 
     """
-    _model_name = 'magento.product.product'
+    _model_name = 'shopware.product.product'
 
-    def run(self, binding_id, magento_record):
+    def run(self, binding_id, shopware_record):
         """ Import the bundle information about a product.
 
-        :param magento_record: product information from Magento
+        :param shopware_record: product information from Shopware
         """
 
 
-@magento
+@shopware
 class ProductImportMapper(ImportMapper):
-    _model_name = 'magento.product.product'
+    _model_name = 'shopware.product.product'
     # TODO :     categ, special_price => minimal_price
     direct = [('name', 'name'),
               ('description', 'description'),
@@ -459,7 +459,7 @@ class ProductImportMapper(ImportMapper):
     @mapping
     def website_ids(self, record):
         website_ids = []
-        binder = self.binder_for('magento.website')
+        binder = self.binder_for('shopware.website')
         for mag_website_id in record['websites']:
             website_id = binder.to_openerp(mag_website_id)
             website_ids.append((4, website_id))
@@ -468,7 +468,7 @@ class ProductImportMapper(ImportMapper):
     @mapping
     def categories(self, record):
         mag_categories = record['categories']
-        binder = self.binder_for('magento.product.category')
+        binder = self.binder_for('shopware.product.category')
 
         category_ids = []
         main_categ_id = None
@@ -477,7 +477,7 @@ class ProductImportMapper(ImportMapper):
             cat_id = binder.to_openerp(mag_category_id, unwrap=True)
             if cat_id is None:
                 raise MappingError("The product category with "
-                                   "magento id %s is not imported." %
+                                   "shopware id %s is not imported." %
                                    mag_category_id)
 
             category_ids.append(cat_id)
@@ -496,8 +496,8 @@ class ProductImportMapper(ImportMapper):
         return result
 
     @mapping
-    def magento_id(self, record):
-        return {'magento_id': record['product_id']}
+    def shopware_id(self, record):
+        return {'shopware_id': record['product_id']}
 
     @mapping
     def backend_id(self, record):
@@ -510,27 +510,27 @@ class ProductImportMapper(ImportMapper):
             return bundle_mapper.map_record(record).values(**self.options)
 
 
-@magento
-class ProductImporter(MagentoImporter):
-    _model_name = ['magento.product.product']
+@shopware
+class ProductImporter(ShopwareImporter):
+    _model_name = ['shopware.product.product']
 
     _base_mapper = ProductImportMapper
 
     def _import_bundle_dependencies(self):
         """ Import the dependencies for a Bundle """
-        bundle = self.magento_record['_bundle_data']
+        bundle = self.shopware_record['_bundle_data']
         for option in bundle['options']:
             for selection in option['selections']:
                 self._import_dependency(selection['product_id'],
-                                        'magento.product.product')
+                                        'shopware.product.product')
 
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
-        record = self.magento_record
+        record = self.shopware_record
         # import related categories
         for mag_category_id in record['categories']:
             self._import_dependency(mag_category_id,
-                                    'magento.product.category')
+                                    'shopware.product.category')
         if record['type_id'] == 'bundle':
             self._import_bundle_dependencies()
 
@@ -539,7 +539,7 @@ class ProductImporter(MagentoImporter):
         prevent the `except_orm` and display a better error message).
         """
         product_type = data['product_type']
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         types = product_model.product_type_get()
         available_types = [typ[0] for typ in types]
         if product_type not in available_types:
@@ -559,7 +559,7 @@ class ProductImporter(MagentoImporter):
 
         :returns: None | str | unicode
         """
-        if self.magento_record['type_id'] == 'configurable':
+        if self.shopware_record['type_id'] == 'configurable':
             return _('The configurable product is not imported in OpenERP, '
                      'because only the simple products are used in the sales '
                      'orders.')
@@ -583,48 +583,48 @@ class ProductImporter(MagentoImporter):
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         translation_importer = self.unit_for(TranslationImporter)
-        translation_importer.run(self.magento_id, binding.id,
+        translation_importer.run(self.shopware_id, binding.id,
                                  mapper_class=ProductImportMapper)
         image_importer = self.unit_for(CatalogImageImporter)
-        image_importer.run(self.magento_id, binding.id)
+        image_importer.run(self.shopware_id, binding.id)
 
-        if self.magento_record['type_id'] == 'bundle':
+        if self.shopware_record['type_id'] == 'bundle':
             bundle_importer = self.unit_for(BundleImporter)
-            bundle_importer.run(binding.id, self.magento_record)
+            bundle_importer.run(binding.id, self.shopware_record)
 
 
 ProductImport = ProductImporter  # deprecated
 
 
-@magento
+@shopware
 class PriceProductImportMapper(ImportMapper):
-    _model_name = 'magento.product.product'
+    _model_name = 'shopware.product.product'
 
     @mapping
     def price(self, record):
         return {'list_price': record.get('price', 0.0)}
 
 
-@magento
+@shopware
 class IsActiveProductImportMapper(ImportMapper):
-    _model_name = 'magento.product.product'
+    _model_name = 'shopware.product.product'
 
     @mapping
     def is_active(self, record):
-        """Check if the product is active in Magento
+        """Check if the product is active in Shopware
         and set active flag in OpenERP
-        status == 1 in Magento means active"""
+        status == 1 in Shopware means active"""
         return {'active': (record.get('status') == '1')}
 
 
-@magento
+@shopware
 class BundleProductImportMapper(ImportMapper):
-    _model_name = 'magento.product.product'
+    _model_name = 'shopware.product.product'
 
 
-@magento
+@shopware
 class ProductInventoryExporter(Exporter):
-    _model_name = ['magento.product.product']
+    _model_name = ['shopware.product.product']
 
     _map_backorders = {'use_default': 0,
                        'no': 0,
@@ -634,11 +634,11 @@ class ProductInventoryExporter(Exporter):
 
     def _get_data(self, product, fields):
         result = {}
-        if 'magento_qty' in fields:
+        if 'shopware_qty' in fields:
             result.update({
-                'qty': product.magento_qty,
+                'qty': product.shopware_qty,
                 # put the stock availability to "out of stock"
-                'is_in_stock': int(product.magento_qty > 0)
+                'is_in_stock': int(product.shopware_qty > 0)
             })
         if 'manage_stock' in fields:
             manage = product.manage_stock
@@ -655,11 +655,11 @@ class ProductInventoryExporter(Exporter):
         return result
 
     def run(self, binding_id, fields):
-        """ Export the product inventory to Magento """
+        """ Export the product inventory to Shopware """
         product = self.model.browse(binding_id)
-        magento_id = self.binder.to_backend(product.id)
+        shopware_id = self.binder.to_backend(product.id)
         data = self._get_data(product, fields)
-        self.backend_adapter.update_inventory(magento_id, data)
+        self.backend_adapter.update_inventory(shopware_id, data)
 
 
 ProductInventoryExport = ProductInventoryExporter  # deprecated
@@ -669,12 +669,12 @@ ProductInventoryExport = ProductInventoryExporter  # deprecated
 # but an export of their inventory
 INVENTORY_FIELDS = ('manage_stock',
                     'backorders',
-                    'magento_qty',
+                    'shopware_qty',
                     )
 
 
-@on_record_write(model_names='magento.product.product')
-def magento_product_modified(session, model_name, record_id, vals):
+@on_record_write(model_names='shopware.product.product')
+def shopware_product_modified(session, model_name, record_id, vals):
     if session.context.get('connector_no_export'):
         return
     if session.env[model_name].browse(record_id).no_stock_sync:
@@ -686,7 +686,7 @@ def magento_product_modified(session, model_name, record_id, vals):
                                        priority=20)
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 @related_action(action=unwrap_binding)
 def export_product_inventory(session, model_name, record_id, fields=None):
     """ Export the inventory configuration and quantity of a product. """

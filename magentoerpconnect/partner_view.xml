@@ -17,26 +17,26 @@
                     <attribute name="invisible">0</attribute>
                 </page>
                 <page name="connector" position="inside">
-                    <group string="Magento Bindings">
-                        <field name="magento_bind_ids" nolabel="1"/>
+                    <group string="Shopware Bindings">
+                        <field name="shopware_bind_ids" nolabel="1"/>
                     </group>
-                    <group string="Magento Address Bindings">
-                        <field name="magento_address_bind_ids" nolabel="1"/>
+                    <group string="Shopware Address Bindings">
+                        <field name="shopware_address_bind_ids" nolabel="1"/>
                     </group>
                 </page>
             </field>
         </record>
 
-        <record id="view_magento_res_partner_form" model="ir.ui.view">
-            <field name="name">magento.res.partner.form</field>
-            <field name="model">magento.res.partner</field>
+        <record id="view_shopware_res_partner_form" model="ir.ui.view">
+            <field name="name">shopware.res.partner.form</field>
+            <field name="model">shopware.res.partner</field>
             <field name="arch" type="xml">
-                <form string="Magento Partner" create="false"
+                <form string="Shopware Partner" create="false"
                        delete="false">
                     <group>
                         <field name="website_id"/>
                         <field name="backend_id"/>
-                        <field name="magento_id"/>
+                        <field name="shopware_id"/>
                         <field name="created_at"/>
                         <field name="updated_at"/>
                         <field name="group_id"/>
@@ -49,11 +49,11 @@
             </field>
         </record>
 
-        <record id="view_magento_res_partner_tree" model="ir.ui.view">
-            <field name="name">magento.res.partner.tree</field>
-            <field name="model">magento.res.partner</field>
+        <record id="view_shopware_res_partner_tree" model="ir.ui.view">
+            <field name="name">shopware.res.partner.tree</field>
+            <field name="model">shopware.res.partner</field>
             <field name="arch" type="xml">
-                <tree string="Magento Partner" create="false"
+                <tree string="Shopware Partner" create="false"
                        delete="false">
                     <field name="backend_id"/>
                     <field name="website_id"/>
@@ -61,17 +61,17 @@
             </field>
         </record>
 
-        <record id="view_magento_address_form" model="ir.ui.view">
-            <field name="name">magento.address.form</field>
-            <field name="model">magento.address</field>
+        <record id="view_shopware_address_form" model="ir.ui.view">
+            <field name="name">shopware.address.form</field>
+            <field name="model">shopware.address</field>
             <field name="arch" type="xml">
-                <form string="Magento Address" create="false"
+                <form string="Shopware Address" create="false"
                        delete="false">
                     <group>
                         <field name="website_id"/>
                         <field name="backend_id"/>
-                        <field name="magento_partner_id"/>
-                        <field name="magento_id"/>
+                        <field name="shopware_partner_id"/>
+                        <field name="shopware_id"/>
                         <field name="created_at"/>
                         <field name="updated_at"/>
                         <field name="is_default_billing"/>
@@ -81,11 +81,11 @@
             </field>
         </record>
 
-        <record id="view_magento_address_tree" model="ir.ui.view">
-            <field name="name">magento.address.tree</field>
-            <field name="model">magento.address</field>
+        <record id="view_shopware_address_tree" model="ir.ui.view">
+            <field name="name">shopware.address.tree</field>
+            <field name="model">shopware.address</field>
             <field name="arch" type="xml">
-                <tree string="Magento Address" create="false"
+                <tree string="Shopware Address" create="false"
                        delete="false">
                     <field name="backend_id"/>
                     <field name="website_id"/>
@@ -99,12 +99,12 @@
             <field name="inherit_id" ref="base.view_partner_category_form" />
             <field name="arch" type="xml">
                 <field name="parent_id" position="after">
-                    <field name="magento_bind_ids">
-                        <form string="Magento">
+                    <field name="shopware_bind_ids">
+                        <form string="Shopware">
                             <field name="backend_id"/>
-                            <field name="magento_id"/>
+                            <field name="shopware_id"/>
                         </form>
-                        <tree string="Magento">
+                        <tree string="Shopware">
                             <field name="backend_id"/>
                         </tree>
                     </field>

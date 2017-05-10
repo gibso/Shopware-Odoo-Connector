@@ -23,52 +23,52 @@
 from openerp import models, fields, api
 
 
-# TODO magento.delivery.carrier & move specific stuff
+# TODO shopware.delivery.carrier & move specific stuff
 class DeliveryCarrier(models.Model):
-    """ Adds Magento specific fields to ``delivery.carrier``
+    """ Adds Shopware specific fields to ``delivery.carrier``
 
-    ``magento_code``
+    ``shopware_code``
 
-        Code of the carrier delivery method in Magento.
+        Code of the carrier delivery method in Shopware.
         Example: ``colissimo_express``
 
-    ``magento_tracking_title``
+    ``shopware_tracking_title``
 
-        Display name of the carrier for the tracking in Magento.
+        Display name of the carrier for the tracking in Shopware.
         Example: Colissimo Express
 
-    ``magento_carrier_code``
+    ``shopware_carrier_code``
 
-        General code of the carrier, the first part of the ``magento_code``.
+        General code of the carrier, the first part of the ``shopware_code``.
         Example: ``colissimo`` for the method ``colissimo_express``.
 
-    ``magento_export_tracking``
+    ``shopware_export_tracking``
 
-        Defines if the tracking numbers should be exported to Magento.
+        Defines if the tracking numbers should be exported to Shopware.
     """
     _inherit = "delivery.carrier"
 
-    magento_code = fields.Char(
-        string='Magento Carrier Code',
+    shopware_code = fields.Char(
+        string='Shopware Carrier Code',
         required=False,
     )
-    magento_tracking_title = fields.Char(
-        string='Magento Tracking Title',
+    shopware_tracking_title = fields.Char(
+        string='Shopware Tracking Title',
         required=False,
     )
-    # in Magento, the delivery method is something like that:
+    # in Shopware, the delivery method is something like that:
     # tntmodule2_tnt_basic
     # where the first part before the first _ is always the carrier code
     # in this example, the carrier code is tntmodule2
-    magento_carrier_code = fields.Char(
+    shopware_carrier_code = fields.Char(
         compute='_compute_carrier_code',
-        string='Magento Base Carrier Code',
+        string='Shopware Base Carrier Code',
     )
-    magento_export_tracking = fields.Boolean(string='Export tracking numbers',
+    shopware_export_tracking = fields.Boolean(string='Export tracking numbers',
                                              default=True)
 
-    @api.depends('magento_code')
+    @api.depends('shopware_code')
     def _compute_carrier_code(self):
         for carrier in self:
-            if carrier.magento_code:
-                self.magento_carrier_code = carrier.magento_code.split('_')[0]
+            if carrier.shopware_code:
+                self.shopware_carrier_code = carrier.shopware_code.split('_')[0]

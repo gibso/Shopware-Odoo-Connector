@@ -28,8 +28,8 @@ from .connector import get_environment
 def delay_export(session, model_name, record_id, vals):
     """ Delay a job which export a binding record.
 
-    (A binding record being a ``magento.res.partner``,
-    ``magento.product.product``, ...)
+    (A binding record being a ``shopware.res.partner``,
+    ``shopware.product.product``, ...)
     """
     if session.context.get('connector_no_export'):
         return
@@ -47,19 +47,19 @@ def delay_export_all_bindings(session, model_name, record_id, vals):
         return
     record = session.env[model_name].browse(record_id)
     fields = vals.keys()
-    for binding in record.magento_bind_ids:
+    for binding in record.shopware_bind_ids:
         export_record.delay(session, binding._model._name, binding.id,
                             fields=fields)
 
 
 def delay_unlink(session, model_name, record_id):
-    """ Delay a job which delete a record on Magento.
+    """ Delay a job which delete a record on Shopware.
 
     Called on binding records."""
     record = session.env[model_name].browse(record_id)
     env = get_environment(session, model_name, record.backend_id.id)
     binder = env.get_connector_unit(Binder)
-    magento_id = binder.to_backend(record_id)
-    if magento_id:
+    shopware_id = binder.to_backend(record_id)
+    if shopware_id:
         export_delete_record.delay(session, model_name,
-                                   record.backend_id.id, magento_id)
+                                   record.backend_id.id, shopware_id)

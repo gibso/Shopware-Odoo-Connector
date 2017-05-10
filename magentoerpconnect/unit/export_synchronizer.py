@@ -42,28 +42,28 @@ _logger = logging.getLogger(__name__)
 
 """
 
-Exporters for Magento.
+Exporters for Shopware.
 
 In addition to its export job, an exporter has to:
 
-* check in Magento if the record has been updated more recently than the
+* check in Shopware if the record has been updated more recently than the
   last sync date and if yes, delay an import
 * call the ``bind`` method of the binder to update the last sync date
 
 """
 
 
-class MagentoBaseExporter(Exporter):
-    """ Base exporter for Magento """
+class ShopwareBaseExporter(Exporter):
+    """ Base exporter for Shopware """
 
     def __init__(self, connector_env):
         """
         :param connector_env: current environment (backend, session, ...)
         :type connector_env: :class:`connector.connector.ConnectorEnvironment`
         """
-        super(MagentoBaseExporter, self).__init__(connector_env)
+        super(ShopwareBaseExporter, self).__init__(connector_env)
         self.binding_id = None
-        self.magento_id = None
+        self.shopware_id = None
 
     def _delay_import(self):
         """ Schedule an import of the record.
@@ -73,32 +73,32 @@ class MagentoBaseExporter(Exporter):
         """
         # force is True because the sync_date will be more recent
         # so the import would be skipped
-        assert self.magento_id
+        assert self.shopware_id
         import_record.delay(self.session, self.model._name,
-                            self.backend_record.id, self.magento_id,
+                            self.backend_record.id, self.shopware_id,
                             force=True)
 
     def _should_import(self):
         """ Before the export, compare the update date
-        in Magento and the last sync date in OpenERP,
+        in Shopware and the last sync date in OpenERP,
         if the former is more recent, schedule an import
-        to not miss changes done in Magento.
+        to not miss changes done in Shopware.
         """
         assert self.binding_record
-        if not self.magento_id:
+        if not self.shopware_id:
             return False
         sync = self.binding_record.sync_date
         if not sync:
             return True
-        record = self.backend_adapter.read(self.magento_id,
+        record = self.backend_adapter.read(self.shopware_id,
                                            attributes=['updated_at'])
         if not record['updated_at']:
             # in rare case it can be empty, in doubt, import it
             return False
         sync_date = openerp.fields.Datetime.from_string(sync)
-        magento_date = datetime.strptime(record['updated_at'],
+        shopware_date = datetime.strptime(record['updated_at'],
                                          MAGENTO_DATETIME_FORMAT)
-        return sync_date < magento_date
+        return sync_date < shopware_date
 
     def _get_openerp_data(self):
         """ Return the raw OpenERP data for ``self.binding_id`` """
@@ -112,18 +112,18 @@ class MagentoBaseExporter(Exporter):
         self.binding_id = binding_id
         self.binding_record = self._get_openerp_data()
 
-        self.magento_id = self.binder.to_backend(self.binding_id)
+        self.shopware_id = self.binder.to_backend(self.binding_id)
         try:
             should_import = self._should_import()
         except IDMissingInBackend:
-            self.magento_id = None
+            self.shopware_id = None
             should_import = False
         if should_import:
             self._delay_import()
 
         result = self._run(*args, **kwargs)
 
-        self.binder.bind(self.magento_id, self.binding_id)
+        self.binder.bind(self.shopware_id, self.binding_id)
         # Commit so we keep the external ID when there are several
         # exports (due to dependencies) and one of them fails.
         # The commit will also release the lock acquired on the binding
@@ -138,19 +138,19 @@ class MagentoBaseExporter(Exporter):
         raise NotImplementedError
 
     def _after_export(self):
-        """ Can do several actions after exporting a record on magento """
+        """ Can do several actions after exporting a record on shopware """
         pass
 
 
-class MagentoExporter(MagentoBaseExporter):
-    """ A common flow for the exports to Magento """
+class ShopwareExporter(ShopwareBaseExporter):
+    """ A common flow for the exports to Shopware """
 
     def __init__(self, connector_env):
         """
         :param connector_env: current environment (backend, session, ...)
         :type connector_env: :class:`connector.connector.ConnectorEnvironment`
         """
-        super(MagentoExporter, self).__init__(connector_env)
+        super(ShopwareExporter, self).__init__(connector_env)
         self.binding_record = None
 
     def _lock(self):
@@ -197,14 +197,14 @@ class MagentoExporter(MagentoBaseExporter):
         record created by :meth:`_export_dependency`), resulting in:
 
             IntegrityError: duplicate key value violates unique
-            constraint "magento_product_product_openerp_uniq"
+            constraint "shopware_product_product_openerp_uniq"
             DETAIL:  Key (backend_id, openerp_id)=(1, 4851) already exists.
 
         In that case, we'll retry the import just later.
 
         .. warning:: The unique constraint must be created on the
                      binding record to prevent 2 bindings to be created
-                     for the same Magento record.
+                     for the same Shopware record.
 
         """
         try:
@@ -220,11 +220,11 @@ class MagentoExporter(MagentoBaseExporter):
                 raise
 
     def _export_dependency(self, relation, binding_model, exporter_class=None,
-                           binding_field='magento_bind_ids',
+                           binding_field='shopware_bind_ids',
                            binding_extra_vals=None):
         """
         Export a dependency. The exporter class is a subclass of
-        ``MagentoExporter``. If a more precise class need to be defined,
+        ``ShopwareExporter``. If a more precise class need to be defined,
         it can be passed to the ``exporter_class`` keyword argument.
 
         .. warning:: a commit is done at the end of the export of each
@@ -247,12 +247,12 @@ class MagentoExporter(MagentoBaseExporter):
         :param exporter_cls: :py:class:`openerp.addons.connector\
                                         .connector.ConnectorUnit`
                              class or parent class to use for the export.
-                             By default: MagentoExporter
+                             By default: ShopwareExporter
         :type exporter_cls: :py:class:`openerp.addons.connector\
                                        .connector.MetaConnectorUnit`
         :param binding_field: name of the one2many field on a normal
                               record that points to the binding record
-                              (default: magento_bind_ids).
+                              (default: shopware_bind_ids).
                               It is used only when the relation is not
                               a binding but is a normal record.
         :type binding_field: str | unicode
@@ -263,11 +263,11 @@ class MagentoExporter(MagentoBaseExporter):
         if not relation:
             return
         if exporter_class is None:
-            exporter_class = MagentoExporter
+            exporter_class = ShopwareExporter
         rel_binder = self.binder_for(binding_model)
         # wrap is typically True if the relation is for instance a
         # 'product.product' record but the binding model is
-        # 'magento.product.product'
+        # 'shopware.product.product'
         wrap = relation._model._name != binding_model
 
         if wrap and hasattr(relation, binding_field):
@@ -281,7 +281,7 @@ class MagentoExporter(MagentoBaseExporter):
             # we are working with a unwrapped record (e.g.
             # product.category) and the binding does not exist yet.
             # Example: I created a product.product and its binding
-            # magento.product.product and we are exporting it, but we need to
+            # shopware.product.product and we are exporting it, but we need to
             # create the binding for the product.category on which it
             # depends.
             else:
@@ -304,7 +304,7 @@ class MagentoExporter(MagentoBaseExporter):
                     # raise a RetryableJobError.
                     self.session.commit()
         else:
-            # If magento_bind_ids does not exist we are typically in a
+            # If shopware_bind_ids does not exist we are typically in a
             # "direct" binding (the binding record is the same record).
             # If wrap is True, relation is already a binding record.
             binding = relation
@@ -365,7 +365,7 @@ class MagentoExporter(MagentoBaseExporter):
         return map_record.values(for_create=True, fields=fields, **kwargs)
 
     def _create(self, data):
-        """ Create the Magento record """
+        """ Create the Shopware record """
         # special check on data before export
         self._validate_create_data(data)
         return self.backend_adapter.create(data)
@@ -375,18 +375,18 @@ class MagentoExporter(MagentoBaseExporter):
         return map_record.values(fields=fields, **kwargs)
 
     def _update(self, data):
-        """ Update an Magento record """
-        assert self.magento_id
+        """ Update an Shopware record """
+        assert self.shopware_id
         # special check on data before export
         self._validate_update_data(data)
-        self.backend_adapter.write(self.magento_id, data)
+        self.backend_adapter.write(self.shopware_id, data)
 
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding_id
         assert self.binding_record
 
-        if not self.magento_id:
+        if not self.shopware_id:
             fields = None  # should be created with all the fields
 
         if self._has_to_skip():
@@ -401,7 +401,7 @@ class MagentoExporter(MagentoBaseExporter):
 
         map_record = self._map_data()
 
-        if self.magento_id:
+        if self.shopware_id:
             record = self._update_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
@@ -410,15 +410,15 @@ class MagentoExporter(MagentoBaseExporter):
             record = self._create_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
-            self.magento_id = self._create(record)
-        return _('Record exported with ID %s on Magento.') % self.magento_id
+            self.shopware_id = self._create(record)
+        return _('Record exported with ID %s on Shopware.') % self.shopware_id
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 @related_action(action=unwrap_binding)
 def export_record(session, model_name, binding_id, fields=None):
-    """ Export a record on Magento """
+    """ Export a record on Shopware """
     record = session.env[model_name].browse(binding_id)
     env = get_environment(session, model_name, record.backend_id.id)
-    exporter = env.get_connector_unit(MagentoExporter)
+    exporter = env.get_connector_unit(ShopwareExporter)
     return exporter.run(binding_id, fields=fields)

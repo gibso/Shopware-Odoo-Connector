@@ -22,8 +22,8 @@
 import openerp.addons.connector.backend as backend
 
 
-magento = backend.Backend('magento')
-""" Generic Magento Backend """
+shopware = backend.Backend('shopware')
+""" Generic Shopware Backend """
 
-magento1700 = backend.Backend(parent=magento, version='1.7')
-""" Magento Backend for version 1.7 """
+shopware1700 = backend.Backend(parent=shopware, version='1.7')
+""" Shopware Backend for version 1.7 """

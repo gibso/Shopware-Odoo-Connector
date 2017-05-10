@@ -2,8 +2,8 @@
 <openerp>
     <data noupdate="0">
 
-        <record id="view_invoice_magento_form" model="ir.ui.view">
-            <field name="name">account.invoice.magento.form</field>
+        <record id="view_invoice_shopware_form" model="ir.ui.view">
+            <field name="name">account.invoice.shopware.form</field>
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="connector_ecommerce.view_invoice_connector_form"/>
             <field name="arch" type="xml">
@@ -11,35 +11,35 @@
                     <attribute name="invisible">0</attribute>
                 </page>
                 <page name="connector" position="inside">
-                    <group string="Magento Bindings">
-                        <field name="magento_bind_ids" nolabel="1"/>
+                    <group string="Shopware Bindings">
+                        <field name="shopware_bind_ids" nolabel="1"/>
                     </group>
                 </page>
             </field>
         </record>
 
-        <record id="view_magento_account_invoice_form" model="ir.ui.view">
-            <field name="name">magento.account.invoice.form</field>
-            <field name="model">magento.account.invoice</field>
+        <record id="view_shopware_account_invoice_form" model="ir.ui.view">
+            <field name="name">shopware.account.invoice.form</field>
+            <field name="model">shopware.account.invoice</field>
             <field name="arch" type="xml">
-                <form string="Magento Invoice"
+                <form string="Shopware Invoice"
                         create="false" delete="false">
                     <group>
                         <field name="backend_id"/>
-                        <field name="magento_id"/>
+                        <field name="shopware_id"/>
                     </group>
                 </form>
             </field>
         </record>
 
-        <record id="view_magento_account_invoice_tree" model="ir.ui.view">
-            <field name="name">magento.account.invoice.tree</field>
-            <field name="model">magento.account.invoice</field>
+        <record id="view_shopware_account_invoice_tree" model="ir.ui.view">
+            <field name="name">shopware.account.invoice.tree</field>
+            <field name="model">shopware.account.invoice</field>
             <field name="arch" type="xml">
-                <tree string="Magento Invoice"
+                <tree string="Shopware Invoice"
                         create="false" delete="false">
                     <field name="backend_id"/>
-                    <field name="magento_id"/>
+                    <field name="shopware_id"/>
                 </tree>
             </field>
         </record>

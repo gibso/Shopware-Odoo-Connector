@@ -9,7 +9,7 @@
       <field name="arch" type="xml">
 
         <group name="import_rule" position="after">
-          <group name="magento" string="Magento">
+          <group name="shopware" string="Shopware">
             <field name="create_invoice_on" string="Create invoice on"/>
           </group>
         </group>

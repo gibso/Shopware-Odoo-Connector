@@ -20,31 +20,31 @@
 ##############################################################################
 
 from openerp import _
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_record)
 from .common import (mock_api,
                      mock_job_delay_to_direct,
                      mock_urlopen_image,
-                     SetUpMagentoSynchronized,
+                     SetUpShopwareSynchronized,
                      )
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 
 
-class TestExportPicking(SetUpMagentoSynchronized):
-    """ Test the export of pickings to Magento """
+class TestExportPicking(SetUpShopwareSynchronized):
+    """ Test the export of pickings to Shopware """
 
     def setUp(self):
         super(TestExportPicking, self).setUp()
-        binding_model = self.env['magento.sale.order']
+        binding_model = self.env['shopware.sale.order']
         # import a sales order
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               self.backend_id, 900000691)
         self.order_binding = binding_model.search(
             [('backend_id', '=', self.backend_id),
-             ('magento_id', '=', '900000691'),
+             ('shopware_id', '=', '900000691'),
              ]
         )
         self.assertEquals(len(self.order_binding), 1)
@@ -53,13 +53,13 @@ class TestExportPicking(SetUpMagentoSynchronized):
         self.order_binding.openerp_id.action_button_confirm()
         self.picking = self.order_binding.picking_ids
         self.assertEquals(len(self.picking), 1)
-        magento_shop = self.picking.sale_id.magento_bind_ids[0].store_id
-        magento_shop.send_picking_done_mail = True
+        shopware_shop = self.picking.sale_id.shopware_bind_ids[0].store_id
+        shopware_shop.send_picking_done_mail = True
 
     def test_export_complete_picking(self):
         """ Exporting a complete picking """
         self.picking.force_assign()
-        job_path = ('openerp.addons.magentoerpconnect.'
+        job_path = ('openerp.addons.shopwareerpconnect.'
                     'stock_picking.export_picking_done')
         response = {
             'sales_order_shipment.create': 987654321,
@@ -70,15 +70,15 @@ class TestExportPicking(SetUpMagentoSynchronized):
         # 'response' values
         with mock_job_delay_to_direct(job_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:
-            # Deliver the entire picking, a 'magento.stock.picking'
+            # Deliver the entire picking, a 'shopware.stock.picking'
             # should be created, then a job is generated that will export
-            # the picking. Here it is forced to a direct call to Magento
+            # the picking. Here it is forced to a direct call to Shopware
             # (which is in fact the mock)
             self.picking.action_done()
             self.assertEquals(self.picking.state, 'done')
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento
+            # BackendAdapter towards Shopware
             self.assertEqual(len(calls_done), 1)
             method, (mag_order_id, items,
                      comment, email, include_comment) = calls_done[0]
@@ -90,10 +90,10 @@ class TestExportPicking(SetUpMagentoSynchronized):
             self.assertEqual(email, True)
             self.assertTrue(include_comment)
 
-        # Check that we have received and bound the magento ID
-        self.assertEquals(len(self.picking.magento_bind_ids), 1)
-        binding = self.picking.magento_bind_ids
-        self.assertEquals(binding.magento_id, '987654321')
+        # Check that we have received and bound the shopware ID
+        self.assertEquals(len(self.picking.shopware_bind_ids), 1)
+        binding = self.picking.shopware_bind_ids
+        self.assertEquals(binding.shopware_id, '987654321')
 
     def test_export_partial_picking(self):
         """ Exporting a partial picking """
@@ -104,7 +104,7 @@ class TestExportPicking(SetUpMagentoSynchronized):
         self.picking.pack_operation_ids[0].product_qty = 1
         self.picking.pack_operation_ids[1].product_qty = 0
 
-        job_path = ('openerp.addons.magentoerpconnect.'
+        job_path = ('openerp.addons.shopwareerpconnect.'
                     'stock_picking.export_picking_done')
         response = {
             'sales_order_shipment.create': 987654321,
@@ -115,15 +115,15 @@ class TestExportPicking(SetUpMagentoSynchronized):
         # 'response' values
         with mock_job_delay_to_direct(job_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:
-            # Deliver the partial picking, a 'magento.stock.picking'
+            # Deliver the partial picking, a 'shopware.stock.picking'
             # should be created, then a job is generated that will export
-            # the picking. Here it is forced to a direct call to Magento
+            # the picking. Here it is forced to a direct call to Shopware
             # (which is in fact the mock)
             self.picking.do_transfer()
             self.assertEquals(self.picking.state, 'done')
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento
+            # BackendAdapter towards Shopware
             self.assertEqual(len(calls_done), 1)
             method, (mag_order_id, items,
                      comment, email, include_comment) = calls_done[0]
@@ -136,10 +136,10 @@ class TestExportPicking(SetUpMagentoSynchronized):
             self.assertEqual(email, True)
             self.assertTrue(include_comment)
 
-        # Check that we have received and bound the magento ID
-        self.assertEquals(len(self.picking.magento_bind_ids), 1)
-        binding = self.picking.magento_bind_ids
-        self.assertEquals(binding.magento_id, '987654321')
+        # Check that we have received and bound the shopware ID
+        self.assertEquals(len(self.picking.shopware_bind_ids), 1)
+        binding = self.picking.shopware_bind_ids
+        self.assertEquals(binding.shopware_id, '987654321')
 
         response = {
             'sales_order_shipment.create': 987654322,
@@ -159,7 +159,7 @@ class TestExportPicking(SetUpMagentoSynchronized):
             self.assertEquals(self.picking.state, 'done')
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento for the remaining picking
+            # BackendAdapter towards Shopware for the remaining picking
             self.assertEqual(len(calls_done), 1)
             method, (mag_order_id, items,
                      comment, email, include_comment) = calls_done[0]
@@ -170,15 +170,15 @@ class TestExportPicking(SetUpMagentoSynchronized):
             self.assertEqual(email, True)
             self.assertTrue(include_comment)
 
-        self.assertEquals(len(backorder.magento_bind_ids), 1)
-        self.assertEquals(backorder.magento_bind_ids.magento_id, '987654322')
+        self.assertEquals(len(backorder.shopware_bind_ids), 1)
+        self.assertEquals(backorder.shopware_bind_ids.shopware_id, '987654322')
 
     def test_export_tracking_after_done(self):
         """ A tracking number is exported after the picking is done """
         self.picking.force_assign()
-        job_picking_path = ('openerp.addons.magentoerpconnect.'
+        job_picking_path = ('openerp.addons.shopwareerpconnect.'
                             'stock_picking.export_picking_done')
-        job_tracking_path = ('openerp.addons.magentoerpconnect.'
+        job_tracking_path = ('openerp.addons.shopwareerpconnect.'
                              'stock_tracking.export_tracking_number')
         response = {
             'sales_order_shipment.create': 987654321,
@@ -189,9 +189,9 @@ class TestExportPicking(SetUpMagentoSynchronized):
         # 'response' values
         with mock_job_delay_to_direct(job_picking_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:
-            # Deliver the entire picking, a 'magento.stock.picking'
+            # Deliver the entire picking, a 'shopware.stock.picking'
             # should be created, then a job is generated that will export
-            # the picking. Here it is forced to a direct call to Magento
+            # the picking. Here it is forced to a direct call to Shopware
             # (which is in fact the mock)
             self.picking.action_done()
             self.assertEquals(self.picking.state, 'done')
@@ -206,17 +206,17 @@ class TestExportPicking(SetUpMagentoSynchronized):
             self.picking.carrier_tracking_ref = 'XYZ'
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento for the remaining picking
+            # BackendAdapter towards Shopware for the remaining picking
             self.assertEqual(len(calls_done), 2)
 
-            # first call asks magento which carriers accept the tracking
-            # numbers, normally magento does not support them on
+            # first call asks shopware which carriers accept the tracking
+            # numbers, normally shopware does not support them on
             # flatrate, we lie for the sake of the test
             method, (mag_order_id,) = calls_done[0]
             self.assertEqual(method, 'sales_order_shipment.getCarriers')
             self.assertEqual(mag_order_id, '900000691')
 
-            # the second call add the tracking number on magento
+            # the second call add the tracking number on shopware
             method, (mag_shipment_id, carrier_code,
                      tracking_title, tracking_number) = calls_done[1]
             self.assertEqual(method, 'sales_order_shipment.addTrack')

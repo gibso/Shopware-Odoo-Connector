@@ -19,42 +19,42 @@
 #
 ##############################################################################
 
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_record)
-from .common import mock_api, SetUpMagentoSynchronized
-from .data_base import magento_base_responses
+from .common import mock_api, SetUpShopwareSynchronized
+from .data_base import shopware_base_responses
 
 
-class TestPartnerCategory(SetUpMagentoSynchronized):
+class TestPartnerCategory(SetUpShopwareSynchronized):
 
     def test_import_partner_category(self):
         """ Import of a partner category """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
-            import_record(self.session, 'magento.res.partner.category',
+        with mock_api(shopware_base_responses):
+            import_record(self.session, 'shopware.res.partner.category',
                           backend_id, 2)
 
-        binding_model = self.env['magento.res.partner.category']
+        binding_model = self.env['shopware.res.partner.category']
         category = binding_model.search([('backend_id', '=', backend_id),
-                                         ('magento_id', '=', '2')])
+                                         ('shopware_id', '=', '2')])
         self.assertEqual(len(category), 1)
         self.assertEqual(category.name, 'Wholesale')
         self.assertEqual(category.tax_class_id, 3)
 
     def test_import_existing_partner_category(self):
         """ Bind of an existing category with same name"""
-        binding_model = self.env['magento.res.partner.category']
+        binding_model = self.env['shopware.res.partner.category']
         category_model = self.env['res.partner.category']
 
         existing_category = category_model.create({'name': 'Wholesale'})
 
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
-            import_record(self.session, 'magento.res.partner.category',
+        with mock_api(shopware_base_responses):
+            import_record(self.session, 'shopware.res.partner.category',
                           backend_id, 2)
 
         category = binding_model.search([('backend_id', '=', backend_id),
-                                         ('magento_id', '=', '2')])
+                                         ('shopware_id', '=', '2')])
         self.assertEqual(len(category), 1)
         self.assertEqual(category.openerp_id, existing_category)
         self.assertEqual(category.name, 'Wholesale')

@@ -23,7 +23,7 @@ import socket
 import logging
 import xmlrpclib
 
-import magento as magentolib
+import shopware as shopwarelib
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import (NetworkRetryableError,
                                                 RetryableJobError)
@@ -38,7 +38,7 @@ recorder = {}
 
 
 def call_to_key(method, arguments):
-    """ Used to 'freeze' the method and arguments of a call to Magento
+    """ Used to 'freeze' the method and arguments of a call to Shopware
     so they can be hashable; they will be stored in a dict.
 
     Used in both the recorder and the tests.
@@ -61,7 +61,7 @@ def call_to_key(method, arguments):
 
 def record(method, arguments, result):
     """ Utility function which can be used to record test data
-    during synchronisations. Call it from MagentoCRUDAdapter._call
+    during synchronisations. Call it from ShopwareCRUDAdapter._call
 
     Then ``output_recorder`` can be used to write the data recorded
     to a file.
@@ -76,7 +76,7 @@ def output_recorder(filename):
     _logger.debug('recorder written to file %s', filename)
 
 
-class MagentoLocation(object):
+class ShopwareLocation(object):
 
     def __init__(self, location, username, password,
                  use_custom_api_path=False):
@@ -101,8 +101,8 @@ class MagentoLocation(object):
         return location
 
 
-class MagentoCRUDAdapter(CRUDAdapter):
-    """ External Records Adapter for Magento """
+class ShopwareCRUDAdapter(CRUDAdapter):
+    """ External Records Adapter for Shopware """
 
     def __init__(self, connector_env):
         """
@@ -110,18 +110,18 @@ class MagentoCRUDAdapter(CRUDAdapter):
         :param connector_env: current environment (backend, session, ...)
         :type connector_env: :class:`connector.connector.ConnectorEnvironment`
         """
-        super(MagentoCRUDAdapter, self).__init__(connector_env)
+        super(ShopwareCRUDAdapter, self).__init__(connector_env)
         backend = self.backend_record
-        magento = MagentoLocation(
+        shopware = ShopwareLocation(
             backend.location,
             backend.username,
             backend.password,
             use_custom_api_path=backend.use_custom_api_path)
         if backend.use_auth_basic:
-            magento.use_auth_basic = True
-            magento.auth_basic_username = backend.auth_basic_username
-            magento.auth_basic_password = backend.auth_basic_password
-        self.magento = magento
+            shopware.use_auth_basic = True
+            shopware.auth_basic_username = backend.auth_basic_username
+            shopware.auth_basic_password = backend.auth_basic_password
+        self.shopware = shopware
 
     def search(self, filters=None):
         """ Search records according to some criterias
@@ -151,13 +151,13 @@ class MagentoCRUDAdapter(CRUDAdapter):
 
     def _call(self, method, arguments):
         try:
-            custom_url = self.magento.use_custom_api_path
-            _logger.debug("Start calling Magento api %s", method)
-            with magentolib.API(self.magento.location,
-                                self.magento.username,
-                                self.magento.password,
+            custom_url = self.shopware.use_custom_api_path
+            _logger.debug("Start calling Shopware api %s", method)
+            with shopwarelib.API(self.shopware.location,
+                                self.shopware.username,
+                                self.shopware.password,
                                 full_url=custom_url) as api:
-                # When Magento is installed on PHP 5.4+, the API
+                # When Shopware is installed on PHP 5.4+, the API
                 # may return garble data if the arguments contain
                 # trailing None.
                 if isinstance(arguments, list):
@@ -195,10 +195,10 @@ class MagentoCRUDAdapter(CRUDAdapter):
                 raise
 
 
-class GenericAdapter(MagentoCRUDAdapter):
+class GenericAdapter(ShopwareCRUDAdapter):
 
     _model_name = None
-    _magento_model = None
+    _shopware_model = None
     _admin_path = None
 
     def search(self, filters=None):
@@ -207,7 +207,7 @@ class GenericAdapter(MagentoCRUDAdapter):
 
         :rtype: list
         """
-        return self._call('%s.search' % self._magento_model,
+        return self._call('%s.search' % self._shopware_model,
                           [filters] if filters else [{}])
 
     def read(self, id, attributes=None):
@@ -218,44 +218,44 @@ class GenericAdapter(MagentoCRUDAdapter):
         arguments = [int(id)]
         if attributes:
             # Avoid to pass Null values in attributes. Workaround for
-            # https://bugs.launchpad.net/openerp-connector-magento/+bug/1210775
-            # When Magento is installed on PHP 5.4 and the compatibility patch
-            # http://magento.com/blog/magento-news/magento-now-supports-php-54
+            # https://bugs.launchpad.net/openerp-connector-shopware/+bug/1210775
+            # When Shopware is installed on PHP 5.4 and the compatibility patch
+            # http://shopware.com/blog/shopware-news/shopware-now-supports-php-54
             # is not installed, calling info() with None in attributes
             # would return a wrong result (almost empty list of
             # attributes). The right correction is to install the
-            # compatibility patch on Magento.
+            # compatibility patch on Shopware.
             arguments.append(attributes)
-        return self._call('%s.info' % self._magento_model,
+        return self._call('%s.info' % self._shopware_model,
                           arguments)
 
     def search_read(self, filters=None):
         """ Search records according to some criterias
         and returns their information"""
-        return self._call('%s.list' % self._magento_model, [filters])
+        return self._call('%s.list' % self._shopware_model, [filters])
 
     def create(self, data):
         """ Create a record on the external system """
-        return self._call('%s.create' % self._magento_model, [data])
+        return self._call('%s.create' % self._shopware_model, [data])
 
     def write(self, id, data):
         """ Update records on the external system """
-        return self._call('%s.update' % self._magento_model,
+        return self._call('%s.update' % self._shopware_model,
                           [int(id), data])
 
     def delete(self, id):
         """ Delete a record on the external system """
-        return self._call('%s.delete' % self._magento_model, [int(id)])
+        return self._call('%s.delete' % self._shopware_model, [int(id)])
 
     def admin_url(self, id):
-        """ Return the URL in the Magento admin for a record """
+        """ Return the URL in the Shopware admin for a record """
         if self._admin_path is None:
             raise ValueError('No admin path is defined for this record')
         backend = self.backend_record
         url = backend.admin_location
         if not url:
             raise ValueError('No admin URL configured on the backend.')
-        path = self._admin_path.format(model=self._magento_model,
+        path = self._admin_path.format(model=self._shopware_model,
                                        id=id)
         url = url.rstrip('/')
         path = path.lstrip('/')

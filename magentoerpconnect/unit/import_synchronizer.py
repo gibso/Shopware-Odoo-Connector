@@ -21,10 +21,10 @@
 
 """
 
-Importers for Magento.
+Importers for Shopware.
 
 An import can be skipped if the last sync date is more recent than
-the last update in Magento.
+the last update in Shopware.
 
 They should call the ``bind`` method if the binder even if the records
 are already bound, to update the last sync date.
@@ -37,39 +37,39 @@ from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.unit.synchronizer import Importer
 from openerp.addons.connector.exception import IDMissingInBackend
-from ..backend import magento
+from ..backend import shopware
 from ..connector import get_environment, add_checkpoint
 from ..related_action import link
 
 _logger = logging.getLogger(__name__)
 
 
-class MagentoImporter(Importer):
-    """ Base importer for Magento """
+class ShopwareImporter(Importer):
+    """ Base importer for Shopware """
 
     def __init__(self, connector_env):
         """
         :param connector_env: current environment (backend, session, ...)
         :type connector_env: :class:`connector.connector.ConnectorEnvironment`
         """
-        super(MagentoImporter, self).__init__(connector_env)
-        self.magento_id = None
-        self.magento_record = None
+        super(ShopwareImporter, self).__init__(connector_env)
+        self.shopware_id = None
+        self.shopware_record = None
 
-    def _get_magento_data(self):
-        """ Return the raw Magento data for ``self.magento_id`` """
-        return self.backend_adapter.read(self.magento_id)
+    def _get_shopware_data(self):
+        """ Return the raw Shopware data for ``self.shopware_id`` """
+        return self.backend_adapter.read(self.shopware_id)
 
     def _before_import(self):
-        """ Hook called before the import, when we have the Magento
+        """ Hook called before the import, when we have the Shopware
         data"""
 
     def _is_uptodate(self, binding):
         """Return True if the import should be skipped because
         it is already up-to-date in OpenERP"""
-        assert self.magento_record
-        if not self.magento_record.get('updated_at'):
-            return  # no update date on Magento, always import it.
+        assert self.shopware_record
+        if not self.shopware_record.get('updated_at'):
+            return  # no update date on Shopware, always import it.
         if not binding:
             return  # it does not exist so it should not be skipped
         sync = binding.sync_date
@@ -77,46 +77,46 @@ class MagentoImporter(Importer):
             return
         from_string = fields.Datetime.from_string
         sync_date = from_string(sync)
-        magento_date = from_string(self.magento_record['updated_at'])
+        shopware_date = from_string(self.shopware_record['updated_at'])
         # if the last synchronization date is greater than the last
-        # update in magento, we skip the import.
+        # update in shopware, we skip the import.
         # Important: at the beginning of the exporters flows, we have to
-        # check if the magento_date is more recent than the sync_date
+        # check if the shopware_date is more recent than the sync_date
         # and if so, schedule a new import. If we don't do that, we'll
-        # miss changes done in Magento
-        return magento_date < sync_date
+        # miss changes done in Shopware
+        return shopware_date < sync_date
 
-    def _import_dependency(self, magento_id, binding_model,
+    def _import_dependency(self, shopware_id, binding_model,
                            importer_class=None, always=False):
         """ Import a dependency.
 
         The importer class is a class or subclass of
-        :class:`MagentoImporter`. A specific class can be defined.
+        :class:`ShopwareImporter`. A specific class can be defined.
 
-        :param magento_id: id of the related binding to import
+        :param shopware_id: id of the related binding to import
         :param binding_model: name of the binding model for the relation
         :type binding_model: str | unicode
         :param importer_cls: :class:`openerp.addons.connector.\
                                      connector.ConnectorUnit`
                              class or parent class to use for the export.
-                             By default: MagentoImporter
+                             By default: ShopwareImporter
         :type importer_cls: :class:`openerp.addons.connector.\
                                     connector.MetaConnectorUnit`
         :param always: if True, the record is updated even if it already
                        exists, note that it is still skipped if it has
-                       not been modified on Magento since the last
+                       not been modified on Shopware since the last
                        update. When False, it will import it only when
                        it does not yet exist.
         :type always: boolean
         """
-        if not magento_id:
+        if not shopware_id:
             return
         if importer_class is None:
-            importer_class = MagentoImporter
+            importer_class = ShopwareImporter
         binder = self.binder_for(binding_model)
-        if always or binder.to_openerp(magento_id) is None:
+        if always or binder.to_openerp(shopware_id) is None:
             importer = self.unit_for(importer_class, model=binding_model)
-            importer.run(magento_id)
+            importer.run(shopware_id)
 
     def _import_dependencies(self):
         """ Import the dependencies for the record
@@ -131,7 +131,7 @@ class MagentoImporter(Importer):
         :py:class:`~openerp.addons.connector.unit.mapper.MapRecord`
 
         """
-        return self.mapper.map_record(self.magento_record)
+        return self.mapper.map_record(self.shopware_record)
 
     def _validate_data(self, data):
         """ Check if the values to import are correct
@@ -158,7 +158,7 @@ class MagentoImporter(Importer):
         return
 
     def _get_binding(self):
-        return self.binder.to_openerp(self.magento_id, browse=True)
+        return self.binder.to_openerp(self.shopware_id, browse=True)
 
     def _create_data(self, map_record, **kwargs):
         return map_record.values(for_create=True, **kwargs)
@@ -169,7 +169,7 @@ class MagentoImporter(Importer):
         self._validate_data(data)
         model = self.model.with_context(connector_no_export=True)
         binding = model.create(data)
-        _logger.debug('%d created from magento %s', binding, self.magento_id)
+        _logger.debug('%d created from shopware %s', binding, self.shopware_id)
         return binding
 
     def _update_data(self, map_record, **kwargs):
@@ -180,30 +180,30 @@ class MagentoImporter(Importer):
         # special check on data before import
         self._validate_data(data)
         binding.with_context(connector_no_export=True).write(data)
-        _logger.debug('%d updated from magento %s', binding, self.magento_id)
+        _logger.debug('%d updated from shopware %s', binding, self.shopware_id)
         return
 
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         return
 
-    def run(self, magento_id, force=False):
+    def run(self, shopware_id, force=False):
         """ Run the synchronization
 
-        :param magento_id: identifier of the record on Magento
+        :param shopware_id: identifier of the record on Shopware
         """
-        self.magento_id = magento_id
+        self.shopware_id = shopware_id
         lock_name = 'import({}, {}, {}, {})'.format(
             self.backend_record._name,
             self.backend_record.id,
             self.model._name,
-            magento_id,
+            shopware_id,
         )
 
         try:
-            self.magento_record = self._get_magento_data()
+            self.shopware_record = self._get_shopware_data()
         except IDMissingInBackend:
-            return _('Record does no longer exist in Magento')
+            return _('Record does no longer exist in Shopware')
 
         skip = self._must_skip()
         if skip:
@@ -232,12 +232,12 @@ class MagentoImporter(Importer):
             record = self._create_data(map_record)
             binding = self._create(record)
 
-        self.binder.bind(self.magento_id, binding)
+        self.binder.bind(self.shopware_id, binding)
 
         self._after_import(binding)
 
 
-MagentoImportSynchronizer = MagentoImporter  # deprecated
+ShopwareImportSynchronizer = ShopwareImporter  # deprecated
 
 
 class BatchImporter(Importer):
@@ -294,19 +294,19 @@ class DelayedBatchImporter(BatchImporter):
 DelayedBatchImport = DelayedBatchImporter  # deprecated
 
 
-@magento
-class SimpleRecordImporter(MagentoImporter):
-    """ Import one Magento Website """
+@shopware
+class SimpleRecordImporter(ShopwareImporter):
+    """ Import one Shopware Website """
     _model_name = [
-        'magento.website',
-        'magento.res.partner.category',
+        'shopware.website',
+        'shopware.res.partner.category',
     ]
 
 
 SimpleRecordImport = SimpleRecordImporter  # deprecated
 
 
-@magento
+@shopware
 class TranslationImporter(Importer):
     """ Import translations for a record.
 
@@ -314,17 +314,17 @@ class TranslationImporter(Importer):
     For instance from the products and products' categories importers.
     """
 
-    _model_name = ['magento.product.category',
-                   'magento.product.product',
+    _model_name = ['shopware.product.category',
+                   'shopware.product.product',
                    ]
 
-    def _get_magento_data(self, storeview_id=None):
-        """ Return the raw Magento data for ``self.magento_id`` """
-        return self.backend_adapter.read(self.magento_id, storeview_id)
+    def _get_shopware_data(self, storeview_id=None):
+        """ Return the raw Shopware data for ``self.shopware_id`` """
+        return self.backend_adapter.read(self.shopware_id, storeview_id)
 
-    def run(self, magento_id, binding_id, mapper_class=None):
-        self.magento_id = magento_id
-        storeviews = self.env['magento.storeview'].search(
+    def run(self, shopware_id, binding_id, mapper_class=None):
+        self.shopware_id = shopware_id
+        storeviews = self.env['shopware.storeview'].search(
             [('backend_id', '=', self.backend_record.id)]
         )
         default_lang = self.backend_record.default_lang_id
@@ -345,7 +345,7 @@ class TranslationImporter(Importer):
 
         binding = self.model.browse(binding_id)
         for storeview in lang_storeviews:
-            lang_record = self._get_magento_data(storeview.magento_id)
+            lang_record = self._get_shopware_data(storeview.shopware_id)
             map_record = mapper.map_record(lang_record)
             record = map_record.values()
 
@@ -356,13 +356,13 @@ class TranslationImporter(Importer):
                                  lang=storeview.lang_id.code).write(data)
 
 
-@magento
+@shopware
 class AddCheckpoint(ConnectorUnit):
     """ Add a connector.checkpoint on the underlying model
-    (not the magento.* but the _inherits'ed model) """
+    (not the shopware.* but the _inherits'ed model) """
 
-    _model_name = ['magento.product.product',
-                   'magento.product.category',
+    _model_name = ['shopware.product.product',
+                   'shopware.product.category',
                    ]
 
     def run(self, openerp_binding_id):
@@ -374,18 +374,18 @@ class AddCheckpoint(ConnectorUnit):
                        self.backend_record.id)
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 def import_batch(session, model_name, backend_id, filters=None):
-    """ Prepare a batch import of records from Magento """
+    """ Prepare a batch import of records from Shopware """
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(BatchImporter)
     importer.run(filters=filters)
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 @related_action(action=link)
-def import_record(session, model_name, backend_id, magento_id, force=False):
-    """ Import a record from Magento """
+def import_record(session, model_name, backend_id, shopware_id, force=False):
+    """ Import a record from Shopware """
     env = get_environment(session, model_name, backend_id)
-    importer = env.get_connector_unit(MagentoImporter)
-    importer.run(magento_id, force=force)
+    importer = env.get_connector_unit(ShopwareImporter)
+    importer.run(shopware_id, force=force)

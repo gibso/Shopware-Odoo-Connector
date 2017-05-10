@@ -23,14 +23,14 @@ import urllib2
 import mock
 from base64 import b64encode
 
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_batch, import_record)
 from openerp.addons.connector.session import ConnectorSession
 import openerp.tests.common as common
 from .common import mock_api, MockResponseImage
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 from .data_product import simple_product_and_images
-from openerp.addons.magentoerpconnect.product import (
+from openerp.addons.shopwareerpconnect.product import (
     CatalogImageImporter,
     ProductProductAdapter,
 )
@@ -54,10 +54,10 @@ class TestImportProductImage(common.TransactionCase):
 
     def setUp(self):
         super(TestImportProductImage, self).setUp()
-        backend_model = self.env['magento.backend']
+        backend_model = self.env['shopware.backend']
         warehouse = self.env.ref('stock.warehouse0')
         self.backend_id = backend_model.create(
-            {'name': 'Test Magento',
+            {'name': 'Test Shopware',
              'version': '1.7',
              'location': 'http://anyurl',
              'username': 'guewen',
@@ -66,14 +66,14 @@ class TestImportProductImage(common.TransactionCase):
 
         self.session = ConnectorSession(self.env.cr, self.env.uid,
                                         context=self.env.context)
-        with mock_api(magento_base_responses):
-            import_batch(self.session, 'magento.website', self.backend_id)
-            import_batch(self.session, 'magento.store', self.backend_id)
-            import_batch(self.session, 'magento.storeview', self.backend_id)
-            import_record(self.session, 'magento.product.category',
+        with mock_api(shopware_base_responses):
+            import_batch(self.session, 'shopware.website', self.backend_id)
+            import_batch(self.session, 'shopware.store', self.backend_id)
+            import_batch(self.session, 'shopware.storeview', self.backend_id)
+            import_record(self.session, 'shopware.product.category',
                           self.backend_id, 1)
 
-        self.product_model = self.env['magento.product.product']
+        self.product_model = self.env['shopware.product.product']
 
     def test_image_priority(self):
         """ Check if the images are sorted in the correct priority """

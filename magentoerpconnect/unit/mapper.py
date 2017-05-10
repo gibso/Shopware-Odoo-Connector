@@ -21,7 +21,7 @@
 
 
 def normalize_datetime(field):
-    """Change a invalid date which comes from Magento, if
+    """Change a invalid date which comes from Shopware, if
     no real date is set to null for correct import to
     OpenERP"""
     def modifier(self, record, to_attr):

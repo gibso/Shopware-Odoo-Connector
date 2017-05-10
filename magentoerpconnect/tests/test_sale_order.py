@@ -20,14 +20,14 @@
 ##############################################################################
 
 import mock
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_record)
 import openerp.tests.common as common
 from .common import (mock_api,
                      mock_urlopen_image,
-                     SetUpMagentoSynchronized,
+                     SetUpShopwareSynchronized,
                      )
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 from .data_guest_order import guest_order_responses
 from ..sale import export_state_change
 
@@ -35,21 +35,21 @@ DB = common.DB
 ADMIN_USER_ID = common.ADMIN_USER_ID
 
 
-class TestSaleOrder(SetUpMagentoSynchronized):
+class TestSaleOrder(SetUpShopwareSynchronized):
 
     def _import_sale_order(self, increment_id, responses=None):
         if responses is None:
-            responses = magento_base_responses
+            responses = shopware_base_responses
         backend_id = self.backend_id
         with mock_api(responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, increment_id)
-        MagentoOrder = self.env['magento.sale.order']
-        binding = MagentoOrder.search(
+        ShopwareOrder = self.env['shopware.sale.order']
+        binding = ShopwareOrder.search(
             [('backend_id', '=', backend_id),
-             ('magento_id', '=', str(increment_id))]
+             ('shopware_id', '=', str(increment_id))]
         )
         self.assertEqual(len(binding), 1)
         return binding
@@ -117,23 +117,23 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         order = binding.openerp_id
         action = order.copy_quotation()
         new_id = action['res_id']
-        self.assertFalse(order.magento_bind_ids)
+        self.assertFalse(order.shopware_bind_ids)
         self.assertEqual(binding.openerp_id.id, new_id)
-        for mag_line in binding.magento_order_line_ids:
+        for mag_line in binding.shopware_order_line_ids:
             self.assertEqual(mag_line.order_id.id, new_id)
 
     def test_cancel_delay_job(self):
         """ Cancel an order, delay a cancel job """
         binding = self._import_sale_order(900000691)
         order = binding.openerp_id
-        patched = 'openerp.addons.magentoerpconnect.sale.export_state_change'
+        patched = 'openerp.addons.shopwareerpconnect.sale.export_state_change'
         # patch the job so it won't be created and we will be able
         # to check if it is called
         with mock.patch(patched) as mock_export_state_change:
             order.action_cancel()
             called = mock_export_state_change.delay
             called.assert_called_with(mock.ANY,
-                                      'magento.sale.order',
+                                      'shopware.sale.order',
                                       binding.id,
                                       allowed_states=['cancel'],
                                       description=mock.ANY)
@@ -143,7 +143,7 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         binding = self._import_sale_order(900000691)
         order = binding.openerp_id
         # patch the job so it won't be created
-        patched = 'openerp.addons.magentoerpconnect.sale.export_state_change'
+        patched = 'openerp.addons.shopwareerpconnect.sale.export_state_change'
         with mock.patch(patched):
             order.action_cancel()
         response = {
@@ -153,15 +153,15 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         with mock_api(response,
                       key_func=lambda method, args: method) as calls_done:
             # call the job synchronously, so we check the calls
-            export_state_change(self.session, 'magento.sale.order',
+            export_state_change(self.session, 'shopware.sale.order',
                                 binding.id, allowed_states=['cancel'])
 
             # call 1: sales_order.info to read the status
             # call 2: sales_order.addComment to add a status comment
             self.assertEqual(len(calls_done), 2)
-            method, (magento_id, state) = calls_done[1]
+            method, (shopware_id, state) = calls_done[1]
             self.assertEqual(method, 'sales_order.addComment')
-            self.assertEqual(magento_id, binding.magento_id)
+            self.assertEqual(shopware_id, binding.shopware_id)
             self.assertEqual(state, 'canceled')
 
     def test_copy_quotation_delay_export_state(self):
@@ -170,17 +170,17 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         order = binding.openerp_id
 
         # cancel the order
-        patched = 'openerp.addons.magentoerpconnect.sale.export_state_change'
+        patched = 'openerp.addons.shopwareerpconnect.sale.export_state_change'
         with mock.patch(patched):
             # cancel the sales order, a job exporting the cancel status
-            # to Magento is normally created (muted here)
+            # to Shopware is normally created (muted here)
             order.action_cancel()
 
         SaleOrder = self.registry('sale.order')
-        patched = 'openerp.addons.magentoerpconnect.sale.export_state_change'
+        patched = 'openerp.addons.shopwareerpconnect.sale.export_state_change'
         with mock.patch(patched) as mock_export_state_change:
             # create a copy of quotation, the new order should be linked to
-            # the Magento sales order
+            # the Shopware sales order
             action = SaleOrder.copy_quotation(self.cr, self.uid, [order.id])
             new_id = action['res_id']
             binding.refresh()
@@ -189,7 +189,7 @@ class TestSaleOrder(SetUpMagentoSynchronized):
 
             called = mock_export_state_change.delay
             called.assert_called_with(mock.ANY,
-                                      'magento.sale.order',
+                                      'shopware.sale.order',
                                       binding.id,
                                       description=mock.ANY)
 
@@ -200,21 +200,21 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         SaleOrder = self.registry('sale.order')
 
         # cancel the order
-        patched = 'openerp.addons.magentoerpconnect.sale.export_state_change'
+        patched = 'openerp.addons.shopwareerpconnect.sale.export_state_change'
         with mock.patch(patched):
             # cancel the sales order, a job exporting the cancel status
-            # to Magento is normally created (muted here)
+            # to Shopware is normally created (muted here)
             order.action_cancel()
 
             # create a copy of quotation, the new order should be linked to
-            # the Magento sales order
+            # the Shopware sales order
             action = SaleOrder.copy_quotation(self.cr, self.uid, [order.id])
             new_id = action['res_id']
             binding.refresh()
             order = binding.openerp_id
             self.assertEqual(order.id, new_id)
 
-        # we will check if the correct messages are sent to Magento
+        # we will check if the correct messages are sent to Shopware
         response = {
             'sales_order.info': {'status': 'canceled'},
             'sales_order.addComment': True,
@@ -222,41 +222,41 @@ class TestSaleOrder(SetUpMagentoSynchronized):
         with mock_api(response,
                       key_func=lambda method, args: method) as calls_done:
             # call the job synchronously, so we check the calls
-            export_state_change(self.session, 'magento.sale.order',
+            export_state_change(self.session, 'shopware.sale.order',
                                 binding.id)
 
             # call 1: sales_order.info to read the status
             # call 2: sales_order.addComment to add a status comment
             self.assertEqual(len(calls_done), 2)
-            method, (magento_id, state) = calls_done[1]
+            method, (shopware_id, state) = calls_done[1]
             self.assertEqual(method, 'sales_order.addComment')
-            self.assertEqual(magento_id, binding.magento_id)
+            self.assertEqual(shopware_id, binding.shopware_id)
             self.assertEqual(state, 'pending')
 
     def test_import_edited(self):
         """ Import of an edited sale order links to its parent """
         binding = self._import_sale_order(900000691)
         new_binding = self._import_sale_order('900000691-1')
-        self.assertEqual(new_binding.magento_parent_id, binding)
+        self.assertEqual(new_binding.shopware_parent_id, binding)
         self.assertTrue(binding.canceled_in_backend)
 
     def test_import_storeview_options(self):
         """ Check if storeview options are propagated """
-        storeview = self.env['magento.storeview'].search([
+        storeview = self.env['shopware.storeview'].search([
             ('backend_id', '=', self.backend_id),
-            ('magento_id', '=', '1')
+            ('shopware_id', '=', '1')
         ])
-        team = self.env['crm.case.section'].create({'name': 'Magento Team'})
+        team = self.env['crm.case.section'].create({'name': 'Shopware Team'})
         storeview.section_id = team
         binding = self._import_sale_order(900000691)
         self.assertEqual(binding.section_id, team)
 
     def test_import_guest_order(self):
         binding = self._import_sale_order(900000700,
-                                          responses=[magento_base_responses,
+                                          responses=[shopware_base_responses,
                                                      guest_order_responses])
-        partner_binding = binding.partner_id.magento_bind_ids
-        self.assertEqual(partner_binding.magento_id, 'guestorder:900000700')
+        partner_binding = binding.partner_id.shopware_bind_ids
+        self.assertEqual(partner_binding.shopware_id, 'guestorder:900000700')
         self.assertTrue(partner_binding.guest_customer)
 
     def test_import_carrier_product(self):
@@ -268,8 +268,8 @@ class TestSaleOrder(SetUpMagentoSynchronized):
             'name': 'Flatrate',
             'partner_id': self.env.ref('base.main_partner').id,
             'product_id': product.id,
-            'magento_code': 'flatrate_flatrate',
-            'magento_carrier_code': 'flatrate_flatrate',
+            'shopware_code': 'flatrate_flatrate',
+            'shopware_carrier_code': 'flatrate_flatrate',
         })
         binding = self._import_sale_order(900000691)
         # check if we have a line with the carrier product,

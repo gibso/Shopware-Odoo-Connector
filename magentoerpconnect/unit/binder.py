@@ -21,37 +21,37 @@
 
 import openerp
 from openerp.addons.connector.connector import Binder
-from ..backend import magento
+from ..backend import shopware
 
 
-class MagentoBinder(Binder):
-    """ Generic Binder for Magento """
+class ShopwareBinder(Binder):
+    """ Generic Binder for Shopware """
 
 
-@magento
-class MagentoModelBinder(MagentoBinder):
+@shopware
+class ShopwareModelBinder(ShopwareBinder):
     """
     Bindings are done directly on the binding model.
 
-    Binding models are models called ``magento.{normal_model}``,
-    like ``magento.res.partner`` or ``magento.product.product``.
+    Binding models are models called ``shopware.{normal_model}``,
+    like ``shopware.res.partner`` or ``shopware.product.product``.
     They are ``_inherits`` of the normal models and contains
-    the Magento ID, the ID of the Magento Backend and the additional
-    fields belonging to the Magento instance.
+    the Shopware ID, the ID of the Shopware Backend and the additional
+    fields belonging to the Shopware instance.
     """
     _model_name = [
-        'magento.website',
-        'magento.store',
-        'magento.storeview',
-        'magento.res.partner',
-        'magento.address',
-        'magento.res.partner.category',
-        'magento.product.category',
-        'magento.product.product',
-        'magento.stock.picking',
-        'magento.sale.order',
-        'magento.sale.order.line',
-        'magento.account.invoice',
+        'shopware.website',
+        'shopware.store',
+        'shopware.storeview',
+        'shopware.res.partner',
+        'shopware.address',
+        'shopware.res.partner.category',
+        'shopware.product.category',
+        'shopware.product.product',
+        'shopware.stock.picking',
+        'shopware.sale.order',
+        'shopware.sale.order.line',
+        'shopware.account.invoice',
     ]
 
     def to_openerp(self, external_id, unwrap=False, browse=False):
@@ -66,7 +66,7 @@ class MagentoModelBinder(MagentoBinder):
         :rtype: recordset
         """
         bindings = self.model.with_context(active_test=False).search(
-            [('magento_id', '=', str(external_id)),
+            [('shopware_id', '=', str(external_id)),
              ('backend_id', '=', self.backend_record.id)]
         )
         if not bindings:
@@ -101,13 +101,13 @@ class MagentoModelBinder(MagentoBinder):
             )
             if binding:
                 binding.ensure_one()
-                return binding.magento_id
+                return binding.shopware_id
             else:
                 return None
         if not record:
             record = self.model.browse(record_id)
         assert record
-        return record.magento_id
+        return record.shopware_id
 
     def bind(self, external_id, binding_id):
         """ Create the link between an external ID and an OpenERP ID and
@@ -117,25 +117,25 @@ class MagentoModelBinder(MagentoBinder):
         :param binding_id: OpenERP ID to bind
         :type binding_id: int
         """
-        # the external ID can be 0 on Magento! Prevent False values
+        # the external ID can be 0 on Shopware! Prevent False values
         # like False, None, or "", but not 0.
         assert (external_id or external_id is 0) and binding_id, (
             "external_id or binding_id missing, "
             "got: %s, %s" % (external_id, binding_id)
         )
-        # avoid to trigger the export when we modify the `magento_id`
+        # avoid to trigger the export when we modify the `shopware_id`
         now_fmt = openerp.fields.Datetime.now()
         if not isinstance(binding_id, openerp.models.BaseModel):
             binding_id = self.model.browse(binding_id)
         binding_id.with_context(connector_no_export=True).write(
-            {'magento_id': str(external_id),
+            {'shopware_id': str(external_id),
              'sync_date': now_fmt,
              })
 
     def unwrap_binding(self, binding_id, browse=False):
         """ For a binding record, gives the normal record.
 
-        Example: when called with a ``magento.product.product`` id,
+        Example: when called with a ``shopware.product.product`` id,
         it will return the corresponding ``product.product`` id.
 
         :param browse: when True, returns a browse_record instance
@@ -154,7 +154,7 @@ class MagentoModelBinder(MagentoBinder):
     def unwrap_model(self):
         """ For a binding model, gives the name of the normal model.
 
-        Example: when called on a binder for ``magento.product.product``,
+        Example: when called on a binder for ``shopware.product.product``,
         it will return ``product.product``.
 
         This binder assumes that the normal model lays in ``openerp_id`` since

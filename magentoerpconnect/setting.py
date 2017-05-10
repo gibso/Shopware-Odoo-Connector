@@ -22,15 +22,15 @@
 from openerp import models, fields
 
 
-class MagentoConfigSettings(models.TransientModel):
+class ShopwareConfigSettings(models.TransientModel):
     _inherit = 'connector.config.settings'
 
-    module_magentoerpconnect_pricing = fields.Boolean(
+    module_shopwareerpconnect_pricing = fields.Boolean(
         string="Prices are managed in OpenERP with pricelists",
-        help="Prices are set in OpenERP and exported to Magento.\n\n"
-             "This installs the module magentoerpconnect_pricing.",
+        help="Prices are set in OpenERP and exported to Shopware.\n\n"
+             "This installs the module shopwareerpconnect_pricing.",
     )
-    module_magentoerpconnect_export_partner = fields.Boolean(
-        string="Export Partners to Magento (experimental)",
-        help="This installs the module magentoerpconnect_export_partner.",
+    module_shopwareerpconnect_export_partner = fields.Boolean(
+        string="Export Partners to Shopware (experimental)",
+        help="This installs the module shopwareerpconnect_export_partner.",
     )

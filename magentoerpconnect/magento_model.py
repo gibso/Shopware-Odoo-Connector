@@ -30,11 +30,11 @@ from openerp.addons.connector.unit.mapper import mapping, ImportMapper
 from .unit.backend_adapter import GenericAdapter
 from .unit.import_synchronizer import (import_batch,
                                        DirectBatchImporter,
-                                       MagentoImporter,
+                                       ShopwareImporter,
                                        )
 from .partner import partner_import_batch
 from .sale import sale_order_import_batch
-from .backend import magento
+from .backend import shopware
 from .connector import add_checkpoint
 
 _logger = logging.getLogger(__name__)
@@ -42,12 +42,12 @@ _logger = logging.getLogger(__name__)
 IMPORT_DELTA_BUFFER = 30  # seconds
 
 
-class MagentoBackend(models.Model):
-    _name = 'magento.backend'
-    _description = 'Magento Backend'
+class ShopwareBackend(models.Model):
+    _name = 'shopware.backend'
+    _description = 'Shopware Backend'
     _inherit = 'connector.backend'
 
-    _backend_type = 'magento'
+    _backend_type = 'shopware'
 
     @api.model
     def select_versions(self):
@@ -71,7 +71,7 @@ class MagentoBackend(models.Model):
     location = fields.Char(
         string='Location',
         required=True,
-        help="Url to magento application",
+        help="Url to shopware application",
     )
     admin_location = fields.Char(string='Admin Location')
     use_custom_api_path = fields.Boolean(
@@ -91,7 +91,7 @@ class MagentoBackend(models.Model):
     use_auth_basic = fields.Boolean(
         string='Use HTTP Auth Basic',
         help="Use a Basic Access Authentication for the API. "
-             "The Magento server could be configured to restrict access "
+             "The Shopware server could be configured to restrict access "
              "using a HTTP authentication based on a username and "
              "a password.",
     )
@@ -107,7 +107,7 @@ class MagentoBackend(models.Model):
         string='Sale Prefix',
         help="A prefix put before the name of imported sales orders.\n"
              "For instance, if the prefix is 'mag-', the sales "
-             "order 100000692 in Magento, will be named 'mag-100000692' "
+             "order 100000692 in Shopware, will be named 'mag-100000692' "
              "in OpenERP.",
     )
     warehouse_id = fields.Many2one(
@@ -124,7 +124,7 @@ class MagentoBackend(models.Model):
         readonly=True,
     )
     website_ids = fields.One2many(
-        comodel_name='magento.website',
+        comodel_name='shopware.website',
         inverse_name='backend_id',
         string='Website',
         readonly=True,
@@ -162,9 +162,9 @@ class MagentoBackend(models.Model):
              "is used.",
     )
     product_binding_ids = fields.One2many(
-        comodel_name='magento.product.product',
+        comodel_name='shopware.product.product',
         inverse_name='backend_id',
-        string='Magento Products',
+        string='Shopware Products',
         readonly=True,
     )
     account_analytic_id = fields.Many2one(
@@ -189,7 +189,7 @@ class MagentoBackend(models.Model):
     ]
 
     @api.multi
-    def check_magento_structure(self):
+    def check_shopware_structure(self):
         """ Used in each data import.
 
         Verify if a website exists for each backend before starting the import.
@@ -205,9 +205,9 @@ class MagentoBackend(models.Model):
         try:
             session = ConnectorSession.from_env(self.env)
             for backend in self:
-                for model in ('magento.website',
-                              'magento.store',
-                              'magento.storeview'):
+                for model in ('shopware.website',
+                              'shopware.store',
+                              'shopware.storeview'):
                     # import directly, do not delay because this
                     # is a fast operation, a direct return is fine
                     # and it is simpler to import them sequentially
@@ -224,14 +224,14 @@ class MagentoBackend(models.Model):
     def import_partners(self):
         """ Import partners from all websites """
         for backend in self:
-            backend.check_magento_structure()
+            backend.check_shopware_structure()
             backend.website_ids.import_partners()
         return True
 
     @api.multi
     def import_sale_orders(self):
         """ Import sale orders from all store views """
-        storeview_obj = self.env['magento.storeview']
+        storeview_obj = self.env['shopware.storeview']
         storeviews = storeview_obj.search([('backend_id', 'in', self.ids)])
         storeviews.import_sale_orders()
         return True
@@ -241,8 +241,8 @@ class MagentoBackend(models.Model):
         session = ConnectorSession(self.env.cr, self.env.uid,
                                    context=self.env.context)
         for backend in self:
-            backend.check_magento_structure()
-            import_batch.delay(session, 'magento.res.partner.category',
+            backend.check_shopware_structure()
+            import_batch.delay(session, 'shopware.res.partner.category',
                                backend.id)
 
         return True
@@ -253,7 +253,7 @@ class MagentoBackend(models.Model):
                                    context=self.env.context)
         import_start_time = datetime.now()
         for backend in self:
-            backend.check_magento_structure()
+            backend.check_shopware_structure()
             from_date = getattr(backend, from_date_field)
             if from_date:
                 from_date = fields.Datetime.from_string(from_date)
@@ -263,8 +263,8 @@ class MagentoBackend(models.Model):
                                backend.id,
                                filters={'from_date': from_date,
                                         'to_date': import_start_time})
-        # Records from Magento are imported based on their `created_at`
-        # date.  This date is set on Magento at the beginning of a
+        # Records from Shopware are imported based on their `created_at`
+        # date.  This date is set on Shopware at the beginning of a
         # transaction, so if the import is run between the beginning and
         # the end of a transaction, the import of a record may be
         # missed.  That's why we add a small buffer back in time where
@@ -278,13 +278,13 @@ class MagentoBackend(models.Model):
 
     @api.multi
     def import_product_categories(self):
-        self._import_from_date('magento.product.category',
+        self._import_from_date('shopware.product.category',
                                'import_categories_from_date')
         return True
 
     @api.multi
     def import_product_product(self):
-        self._import_from_date('magento.product.product',
+        self._import_from_date('shopware.product.product',
                                'import_products_from_date')
         return True
 
@@ -298,14 +298,14 @@ class MagentoBackend(models.Model):
 
     @api.multi
     def update_product_stock_qty(self):
-        mag_product_obj = self.env['magento.product.product']
+        mag_product_obj = self.env['shopware.product.product']
         domain = self._domain_for_update_product_stock_qty()
-        magento_products = mag_product_obj.search(domain)
-        magento_products.recompute_magento_qty()
+        shopware_products = mag_product_obj.search(domain)
+        shopware_products.recompute_shopware_qty()
         return True
 
     @api.model
-    def _magento_backend(self, callback, domain=None):
+    def _shopware_backend(self, callback, domain=None):
         if domain is None:
             domain = []
         backends = self.search(domain)
@@ -314,32 +314,32 @@ class MagentoBackend(models.Model):
 
     @api.model
     def _scheduler_import_sale_orders(self, domain=None):
-        self._magento_backend('import_sale_orders', domain=domain)
+        self._shopware_backend('import_sale_orders', domain=domain)
 
     @api.model
     def _scheduler_import_customer_groups(self, domain=None):
-        self._magento_backend('import_customer_groups', domain=domain)
+        self._shopware_backend('import_customer_groups', domain=domain)
 
     @api.model
     def _scheduler_import_partners(self, domain=None):
-        self._magento_backend('import_partners', domain=domain)
+        self._shopware_backend('import_partners', domain=domain)
 
     @api.model
     def _scheduler_import_product_categories(self, domain=None):
-        self._magento_backend('import_product_categories', domain=domain)
+        self._shopware_backend('import_product_categories', domain=domain)
 
     @api.model
     def _scheduler_import_product_product(self, domain=None):
-        self._magento_backend('import_product_product', domain=domain)
+        self._shopware_backend('import_product_product', domain=domain)
 
     @api.model
     def _scheduler_update_product_stock_qty(self, domain=None):
-        self._magento_backend('update_product_stock_qty', domain=domain)
+        self._shopware_backend('update_product_stock_qty', domain=domain)
 
     @api.multi
     def output_recorder(self):
         """ Utility method to output a file containing all the recorded
-        requests / responses with Magento.  Used to generate test data.
+        requests / responses with Shopware.  Used to generate test data.
         Should be called with ``erppeek`` for instance.
         """
         from .unit.backend_adapter import output_recorder
@@ -353,8 +353,8 @@ class MagentoBackend(models.Model):
         return path
 
 
-class MagentoConfigSpecializer(models.AbstractModel):
-    _name = 'magento.config.specializer'
+class ShopwareConfigSpecializer(models.AbstractModel):
+    _name = 'shopware.config.specializer'
 
     specific_account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',
@@ -401,10 +401,10 @@ class MagentoConfigSpecializer(models.AbstractModel):
                 this._parent.fiscal_position_id)
 
 
-class MagentoWebsite(models.Model):
-    _name = 'magento.website'
-    _inherit = ['magento.binding', 'magento.config.specializer']
-    _description = 'Magento Website'
+class ShopwareWebsite(models.Model):
+    _name = 'shopware.website'
+    _inherit = ['shopware.binding', 'shopware.config.specializer']
+    _description = 'Shopware Website'
     _parent_name = 'backend_id'
 
     _order = 'sort_order ASC, id ASC'
@@ -413,7 +413,7 @@ class MagentoWebsite(models.Model):
     code = fields.Char(readonly=True)
     sort_order = fields.Integer(string='Sort Order', readonly=True)
     store_ids = fields.One2many(
-        comodel_name='magento.store',
+        comodel_name='shopware.store',
         inverse_name='website_id',
         string='Stores',
         readonly=True,
@@ -422,8 +422,8 @@ class MagentoWebsite(models.Model):
         string='Import partners from date',
     )
     product_binding_ids = fields.Many2many(
-        comodel_name='magento.product.product',
-        string='Magento Products',
+        comodel_name='shopware.product.product',
+        string='Shopware Products',
         readonly=True,
     )
 
@@ -440,12 +440,12 @@ class MagentoWebsite(models.Model):
             else:
                 from_date = None
             partner_import_batch.delay(
-                session, 'magento.res.partner', backend_id,
-                {'magento_website_id': website.magento_id,
+                session, 'shopware.res.partner', backend_id,
+                {'shopware_website_id': website.shopware_id,
                  'from_date': from_date,
                  'to_date': import_start_time})
-        # Records from Magento are imported based on their `created_at`
-        # date.  This date is set on Magento at the beginning of a
+        # Records from Shopware are imported based on their `created_at`
+        # date.  This date is set on Shopware at the beginning of a
         # transaction, so if the import is run between the beginning and
         # the end of a transaction, the import of a record may be
         # missed.  That's why we add a small buffer back in time where
@@ -459,31 +459,31 @@ class MagentoWebsite(models.Model):
         return True
 
 
-class MagentoStore(models.Model):
-    _name = 'magento.store'
-    _inherit = ['magento.binding', 'magento.config.specializer']
-    _description = 'Magento Store'
+class ShopwareStore(models.Model):
+    _name = 'shopware.store'
+    _inherit = ['shopware.binding', 'shopware.config.specializer']
+    _description = 'Shopware Store'
     _parent_name = 'website_id'
 
     name = fields.Char()
     website_id = fields.Many2one(
-        comodel_name='magento.website',
-        string='Magento Website',
+        comodel_name='shopware.website',
+        string='Shopware Website',
         required=True,
         readonly=True,
         ondelete='cascade',
     )
     backend_id = fields.Many2one(
-        comodel_name='magento.backend',
+        comodel_name='shopware.backend',
         related='website_id.backend_id',
-        string='Magento Backend',
+        string='Shopware Backend',
         store=True,
         readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
+        # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
     storeview_ids = fields.One2many(
-        comodel_name='magento.storeview',
+        comodel_name='shopware.storeview',
         inverse_name='store_id',
         string="Storeviews",
         readonly=True,
@@ -491,12 +491,12 @@ class MagentoStore(models.Model):
     send_picking_done_mail = fields.Boolean(
         string='Send email notification on picking done',
         help="Does the picking export/creation should send "
-             "an email notification on Magento side?",
+             "an email notification on Shopware side?",
     )
     send_invoice_paid_mail = fields.Boolean(
         string='Send email notification on invoice validated/paid',
         help="Does the invoice export/creation should send "
-             "an email notification on Magento side?",
+             "an email notification on Shopware side?",
     )
     create_invoice_on = fields.Selection(
         selection=[('open', 'Validate'),
@@ -504,7 +504,7 @@ class MagentoStore(models.Model):
         string='Create invoice on action',
         default='paid',
         required=True,
-        help="Should the invoice be created in Magento "
+        help="Should the invoice be created in Shopware "
              "when it is validated or when it is paid in OpenERP?\n"
              "This only takes effect if the sales order's related "
              "payment method is not giving an option for this by "
@@ -512,10 +512,10 @@ class MagentoStore(models.Model):
     )
 
 
-class MagentoStoreview(models.Model):
-    _name = 'magento.storeview'
-    _inherit = ['magento.binding', 'magento.config.specializer']
-    _description = "Magento Storeview"
+class ShopwareStoreview(models.Model):
+    _name = 'shopware.storeview'
+    _inherit = ['shopware.binding', 'shopware.config.specializer']
+    _description = "Shopware Storeview"
     _parent_name = 'store_id'
 
     _order = 'sort_order ASC, id ASC'
@@ -524,7 +524,7 @@ class MagentoStoreview(models.Model):
     code = fields.Char(readonly=True)
     enabled = fields.Boolean(string='Enabled', readonly=True)
     sort_order = fields.Integer(string='Sort Order', readonly=True)
-    store_id = fields.Many2one(comodel_name='magento.store',
+    store_id = fields.Many2one(comodel_name='shopware.store',
                                string='Store',
                                ondelete='cascade',
                                readonly=True)
@@ -532,12 +532,12 @@ class MagentoStoreview(models.Model):
     section_id = fields.Many2one(comodel_name='crm.case.section',
                                  string='Sales Team')
     backend_id = fields.Many2one(
-        comodel_name='magento.backend',
+        comodel_name='shopware.backend',
         related='store_id.website_id.backend_id',
-        string='Magento Backend',
+        string='Shopware Backend',
         store=True,
         readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
+        # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
     import_orders_from_date = fields.Datetime(
@@ -547,7 +547,7 @@ class MagentoStoreview(models.Model):
     )
     no_sales_order_sync = fields.Boolean(
         string='No Sales Order Synchronization',
-        help='Check if the storeview is active in Magento '
+        help='Check if the storeview is active in Shopware '
              'but its sales orders should not be imported.',
     )
     catalog_price_tax_included = fields.Boolean(string='Prices include tax')
@@ -559,7 +559,7 @@ class MagentoStoreview(models.Model):
         import_start_time = datetime.now()
         for storeview in self:
             if storeview.no_sales_order_sync:
-                _logger.debug("The storeview '%s' is active in Magento "
+                _logger.debug("The storeview '%s' is active in Shopware "
                               "but is configured not to import the "
                               "sales orders", storeview.name)
                 continue
@@ -571,14 +571,14 @@ class MagentoStoreview(models.Model):
                 from_date = None
             sale_order_import_batch.delay(
                 session,
-                'magento.sale.order',
+                'shopware.sale.order',
                 backend_id,
-                {'magento_storeview_id': storeview.magento_id,
+                {'shopware_storeview_id': storeview.shopware_id,
                  'from_date': from_date,
                  'to_date': import_start_time},
                 priority=1)  # executed as soon as possible
-        # Records from Magento are imported based on their `created_at`
-        # date.  This date is set on Magento at the beginning of a
+        # Records from Shopware are imported based on their `created_at`
+        # date.  This date is set on Shopware at the beginning of a
         # transaction, so if the import is run between the beginning and
         # the end of a transaction, the import of a record may be
         # missed.  That's why we add a small buffer back in time where
@@ -593,50 +593,50 @@ class MagentoStoreview(models.Model):
         return True
 
 
-@magento
+@shopware
 class WebsiteAdapter(GenericAdapter):
-    _model_name = 'magento.website'
-    _magento_model = 'ol_websites'
+    _model_name = 'shopware.website'
+    _shopware_model = 'ol_websites'
     _admin_path = 'system_store/editWebsite/website_id/{id}'
 
 
-@magento
+@shopware
 class StoreAdapter(GenericAdapter):
-    _model_name = 'magento.store'
-    _magento_model = 'ol_groups'
+    _model_name = 'shopware.store'
+    _shopware_model = 'ol_groups'
     _admin_path = 'system_store/editGroup/group_id/{id}'
 
 
-@magento
+@shopware
 class StoreviewAdapter(GenericAdapter):
-    _model_name = 'magento.storeview'
-    _magento_model = 'ol_storeviews'
+    _model_name = 'shopware.storeview'
+    _shopware_model = 'ol_storeviews'
     _admin_path = 'system_store/editStore/store_id/{id}'
 
 
-@magento
+@shopware
 class MetadataBatchImporter(DirectBatchImporter):
     """ Import the records directly, without delaying the jobs.
 
-    Import the Magento Websites, Stores, Storeviews
+    Import the Shopware Websites, Stores, Storeviews
 
     They are imported directly because this is a rare and fast operation,
     and we don't really bother if it blocks the UI during this time.
-    (that's also a mean to rapidly check the connectivity with Magento).
+    (that's also a mean to rapidly check the connectivity with Shopware).
     """
     _model_name = [
-        'magento.website',
-        'magento.store',
-        'magento.storeview',
+        'shopware.website',
+        'shopware.store',
+        'shopware.storeview',
     ]
 
 
 MetadataBatchImport = MetadataBatchImporter  # deprecated
 
 
-@magento
+@shopware
 class WebsiteImportMapper(ImportMapper):
-    _model_name = 'magento.website'
+    _model_name = 'shopware.website'
 
     direct = [('code', 'code'),
               ('sort_order', 'sort_order')]
@@ -653,22 +653,22 @@ class WebsiteImportMapper(ImportMapper):
         return {'backend_id': self.backend_record.id}
 
 
-@magento
+@shopware
 class StoreImportMapper(ImportMapper):
-    _model_name = 'magento.store'
+    _model_name = 'shopware.store'
 
     direct = [('name', 'name')]
 
     @mapping
     def website_id(self, record):
-        binder = self.binder_for(model='magento.website')
+        binder = self.binder_for(model='shopware.website')
         binding_id = binder.to_openerp(record['website_id'])
         return {'website_id': binding_id}
 
 
-@magento
+@shopware
 class StoreviewImportMapper(ImportMapper):
-    _model_name = 'magento.storeview'
+    _model_name = 'shopware.storeview'
 
     direct = [
         ('name', 'name'),
@@ -679,15 +679,15 @@ class StoreviewImportMapper(ImportMapper):
 
     @mapping
     def store_id(self, record):
-        binder = self.binder_for(model='magento.store')
+        binder = self.binder_for(model='shopware.store')
         binding_id = binder.to_openerp(record['group_id'])
         return {'store_id': binding_id}
 
 
-@magento
-class StoreImporter(MagentoImporter):
-    """ Import one Magento Store (create a sale.shop via _inherits) """
-    _model_name = ['magento.store',
+@shopware
+class StoreImporter(ShopwareImporter):
+    """ Import one Shopware Store (create a sale.shop via _inherits) """
+    _model_name = ['shopware.store',
                    ]
 
     def _create(self, data):
@@ -700,10 +700,10 @@ class StoreImporter(MagentoImporter):
 StoreImport = StoreImporter  # deprecated
 
 
-@magento
-class StoreviewImporter(MagentoImporter):
-    """ Import one Magento Storeview """
-    _model_name = ['magento.storeview',
+@shopware
+class StoreviewImporter(ShopwareImporter):
+    """ Import one Shopware Storeview """
+    _model_name = ['shopware.storeview',
                    ]
 
     def _create(self, data):
@@ -716,13 +716,13 @@ class StoreviewImporter(MagentoImporter):
 StoreviewImport = StoreviewImporter  # deprecated
 
 
-@magento
+@shopware
 class StoreAddCheckpoint(ConnectorUnit):
-    """ Add a connector.checkpoint on the magento.storeview
-    or magento.store record
+    """ Add a connector.checkpoint on the shopware.storeview
+    or shopware.store record
     """
-    _model_name = ['magento.storeview',
-                   'magento.store',
+    _model_name = ['shopware.storeview',
+                   'shopware.store',
                    ]
 
     def run(self, binding_id):
@@ -732,4 +732,4 @@ class StoreAddCheckpoint(ConnectorUnit):
                        self.backend_record.id)
 
 # backward compatibility
-StoreViewAddCheckpoint = magento(StoreAddCheckpoint)
+StoreViewAddCheckpoint = shopware(StoreAddCheckpoint)

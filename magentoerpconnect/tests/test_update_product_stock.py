@@ -21,18 +21,18 @@
 
 import mock
 
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_record)
 from .common import (mock_api,
                      mock_job_delay_to_direct,
                      mock_urlopen_image,
-                     SetUpMagentoSynchronized,
+                     SetUpShopwareSynchronized,
                      )
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 
 
-class TestUpdateStockQty(SetUpMagentoSynchronized):
-    """ Test the export of pickings to Magento """
+class TestUpdateStockQty(SetUpShopwareSynchronized):
+    """ Test the export of pickings to Shopware """
 
     def _product_change_qty(self, product, new_qty):
         wizard_model = self.env['stock.change.product.qty']
@@ -42,15 +42,15 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
 
     def setUp(self):
         super(TestUpdateStockQty, self).setUp()
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               self.backend_id, 16)
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         self.binding_product = product_model.search(
             [('backend_id', '=', self.backend_id),
-             ('magento_id', '=', '16')])
+             ('shopware_id', '=', '16')])
         self.assertEqual(len(self.binding_product), 1)
 
     def test_compute_new_qty(self):
@@ -58,30 +58,30 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
         binding = self.binding_product
         # start with 0
         self.assertEqual(product.virtual_available, 0.0)
-        self.assertEqual(binding.magento_qty, 0.0)
+        self.assertEqual(binding.shopware_qty, 0.0)
 
         # change to 30
         self._product_change_qty(product, 30)
 
-        # the virtual available is 30, the magento qty has not been
+        # the virtual available is 30, the shopware qty has not been
         # updated yet
         self.assertEqual(product.virtual_available, 30.0)
-        self.assertEqual(binding.magento_qty, 0.0)
+        self.assertEqual(binding.shopware_qty, 0.0)
 
-        # search for the new quantities to push to Magento
+        # search for the new quantities to push to Shopware
         # we mock the job so we can check it .delay() is called on it
         # when the quantity is changed
-        patched = ('openerp.addons.magentoerpconnect.'
+        patched = ('openerp.addons.shopwareerpconnect.'
                    'product.export_product_inventory')
         with mock.patch(patched) as export_product_inventory:
-            binding.recompute_magento_qty()
-            self.assertEqual(binding.magento_qty, 30.0)
+            binding.recompute_shopware_qty()
+            self.assertEqual(binding.shopware_qty, 30.0)
             export_product_inventory.delay.assert_called_with(
                 mock.ANY,
-                'magento.product.product',
+                'shopware.product.product',
                 binding.id,
                 priority=20,
-                fields=['magento_qty'])
+                fields=['shopware_qty'])
 
     def test_compute_new_qty_different_field(self):
         stock_field = self.env.ref('stock.field_product_product_qty_available')
@@ -91,16 +91,16 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
         # start with 0
         self.assertEqual(product.qty_available, 0.0)
         self.assertEqual(product.virtual_available, 0.0)
-        self.assertEqual(binding.magento_qty, 0.0)
+        self.assertEqual(binding.shopware_qty, 0.0)
 
         # change to 30
         self._product_change_qty(product, 30)
 
-        # the virtual available is 30, the magento qty has not been
+        # the virtual available is 30, the shopware qty has not been
         # updated yet
         self.assertEqual(product.qty_available, 30.0)
         self.assertEqual(product.virtual_available, 30.0)
-        self.assertEqual(binding.magento_qty, 0.0)
+        self.assertEqual(binding.shopware_qty, 0.0)
 
         # create an outgoing move
         customer_location = self.env.ref('stock.stock_location_customers')
@@ -118,30 +118,30 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
         # the virtual is now 19, available still 30
         self.assertEqual(product.qty_available, 30.0)
         self.assertEqual(product.virtual_available, 19.0)
-        self.assertEqual(binding.magento_qty, 0.0)
+        self.assertEqual(binding.shopware_qty, 0.0)
 
-        # search for the new quantities to push to Magento
+        # search for the new quantities to push to Shopware
         # we mock the job so we can check it .delay() is called on it
         # when the quantity is changed
-        patched = ('openerp.addons.magentoerpconnect.'
+        patched = ('openerp.addons.shopwareerpconnect.'
                    'product.export_product_inventory')
         with mock.patch(patched) as export_product_inventory:
-            binding.recompute_magento_qty()
+            binding.recompute_shopware_qty()
             # since we have chose to use the field qty_available on the
             # backend, we should have 30
-            self.assertEqual(binding.magento_qty, 30.0)
+            self.assertEqual(binding.shopware_qty, 30.0)
             export_product_inventory.delay.assert_called_with(
                 mock.ANY,
-                'magento.product.product',
+                'shopware.product.product',
                 binding.id,
                 priority=20,
-                fields=['magento_qty'])
+                fields=['shopware_qty'])
 
     def test_export_qty_api(self):
         product = self.binding_product.openerp_id
         binding = self.binding_product
 
-        job_path = ('openerp.addons.magentoerpconnect.'
+        job_path = ('openerp.addons.shopwareerpconnect.'
                     'product.export_product_inventory')
         response = {
             'oerp_cataloginventory_stock_item.update': True,
@@ -154,10 +154,10 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
         # 'response' values
         with mock_job_delay_to_direct(job_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:
-            binding.recompute_magento_qty()
+            binding.recompute_shopware_qty()
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento to export the new stock
+            # BackendAdapter towards Shopware to export the new stock
             # values
             self.assertEqual(len(calls_done), 1)
             method, (product_id, stock_data) = calls_done[0]
@@ -167,7 +167,7 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
 
     def test_export_qty_api_on_write(self):
 
-        job_path = ('openerp.addons.magentoerpconnect.'
+        job_path = ('openerp.addons.shopwareerpconnect.'
                     'product.export_product_inventory')
         response = {
             'oerp_cataloginventory_stock_item.update': True,
@@ -180,13 +180,13 @@ class TestUpdateStockQty(SetUpMagentoSynchronized):
         with mock_job_delay_to_direct(job_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:
             self.binding_product.write({
-                'magento_qty': 333,
+                'shopware_qty': 333,
                 'backorders': 'yes-and-notification',
                 'manage_stock': 'yes',
             })
 
             # Here we check what call with which args has been done by the
-            # BackendAdapter towards Magento to export the new stock
+            # BackendAdapter towards Shopware to export the new stock
             # values
             self.assertEqual(len(calls_done), 1)
             method, (product_id, stock_data) = calls_done[0]

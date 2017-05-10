@@ -29,38 +29,38 @@ from openerp.addons.connector.exception import (
     RetryableJobError,
 )
 from openerp.addons.connector.session import ConnectorSession
-from openerp.addons.magentoerpconnect.unit.import_synchronizer import (
+from openerp.addons.shopwareerpconnect.unit.import_synchronizer import (
     import_batch,
     import_record)
-from openerp.addons.magentoerpconnect.product_category import (
+from openerp.addons.shopwareerpconnect.product_category import (
     ProductCategoryImporter,
 )
 from .common import (mock_api,
                      mock_urlopen_image,
-                     SetUpMagentoBase,
-                     SetUpMagentoSynchronized,
+                     SetUpShopwareBase,
+                     SetUpShopwareSynchronized,
                      )
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 
 
-class TestBaseMagento(SetUpMagentoBase):
+class TestBaseShopware(SetUpShopwareBase):
 
     def test_import_backend(self):
         """ Synchronize initial metadata """
-        with mock_api(magento_base_responses):
-            import_batch(self.session, 'magento.website', self.backend_id)
-            import_batch(self.session, 'magento.store', self.backend_id)
-            import_batch(self.session, 'magento.storeview', self.backend_id)
+        with mock_api(shopware_base_responses):
+            import_batch(self.session, 'shopware.website', self.backend_id)
+            import_batch(self.session, 'shopware.store', self.backend_id)
+            import_batch(self.session, 'shopware.storeview', self.backend_id)
 
-        website_model = self.env['magento.website']
+        website_model = self.env['shopware.website']
         websites = website_model.search([('backend_id', '=', self.backend_id)])
         self.assertEqual(len(websites), 2)
 
-        store_model = self.env['magento.store']
+        store_model = self.env['shopware.store']
         stores = store_model.search([('backend_id', '=', self.backend_id)])
         self.assertEqual(len(stores), 2)
 
-        storeview_model = self.env['magento.storeview']
+        storeview_model = self.env['shopware.storeview']
         storeviews = storeview_model.search(
             [('backend_id', '=', self.backend_id)])
         self.assertEqual(len(storeviews), 4)
@@ -68,164 +68,164 @@ class TestBaseMagento(SetUpMagentoBase):
         # TODO; install & configure languages on storeviews
 
 
-class TestImportMagento(SetUpMagentoSynchronized):
-    """ Test the imports from a Magento Mock. """
+class TestImportShopware(SetUpShopwareSynchronized):
+    """ Test the imports from a Shopware Mock. """
 
     def test_import_product_category(self):
         """ Import of a product category """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
-            import_record(self.session, 'magento.product.category',
+        with mock_api(shopware_base_responses):
+            import_record(self.session, 'shopware.product.category',
                           backend_id, 1)
 
-        category_model = self.env['magento.product.category']
+        category_model = self.env['shopware.product.category']
         category = category_model.search([('backend_id', '=', backend_id)])
         self.assertEqual(len(category), 1)
 
     def test_import_product_category_with_gap(self):
         """ Import of a product category when parent categories are missing """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
-            import_record(self.session, 'magento.product.category',
+        with mock_api(shopware_base_responses):
+            import_record(self.session, 'shopware.product.category',
                           backend_id, 8)
 
-        category_model = self.env['magento.product.category']
+        category_model = self.env['shopware.product.category']
         categories = category_model.search([('backend_id', '=', backend_id)])
         self.assertEqual(len(categories), 4)
 
     def test_import_product(self):
         """ Import of a simple product """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               backend_id, 16)
 
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         product = product_model.search([('backend_id', '=', backend_id),
-                                        ('magento_id', '=', '16')])
+                                        ('shopware_id', '=', '16')])
         self.assertEqual(len(product), 1)
 
     def test_import_product_category_missing(self):
         """ Import of a simple product when the category is missing """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               backend_id, 25)
 
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         product = product_model.search([('backend_id', '=', backend_id),
-                                        ('magento_id', '=', '25')])
+                                        ('shopware_id', '=', '25')])
         self.assertEqual(len(product), 1)
 
     def test_import_product_configurable(self):
         """ Import of a configurable product : no need to import it """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               backend_id, 126)
 
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         products = product_model.search([('backend_id', '=', backend_id),
-                                         ('magento_id', '=', '126')])
+                                         ('shopware_id', '=', '126')])
         self.assertEqual(len(products), 0)
 
     def test_import_product_bundle(self):
         """ Bundle should fail: not yet supported """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with self.assertRaises(InvalidDataError):
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               backend_id, 165)
 
     def test_import_product_grouped(self):
         """ Grouped should fail: not yet supported """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with self.assertRaises(InvalidDataError):
                 import_record(self.session,
-                              'magento.product.product',
+                              'shopware.product.product',
                               backend_id, 54)
 
     def test_import_product_virtual(self):
         """ Virtual products are created as service products """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             import_record(self.session,
-                          'magento.product.product',
+                          'shopware.product.product',
                           backend_id, 144)
 
-        product_model = self.env['magento.product.product']
+        product_model = self.env['shopware.product.product']
         product = product_model.search([('backend_id', '=', backend_id),
-                                        ('magento_id', '=', '144')])
+                                        ('shopware_id', '=', '144')])
         self.assertEqual(product.type, 'service')
 
     def test_import_sale_order(self):
         """ Import sale order: check """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, 900000691)
-        order_model = self.env['magento.sale.order']
+        order_model = self.env['shopware.sale.order']
         order = order_model.search([('backend_id', '=', backend_id),
-                                    ('magento_id', '=', '900000691')])
+                                    ('shopware_id', '=', '900000691')])
         self.assertEqual(len(order), 1)
         self.assertEqual(order.payment_term, self.payment_term,
                          "If the payment term is empty, the onchanges have not"
                          " been applied.")
 
     def test_import_sale_order_no_website_id(self):
-        """ Import sale order: website_id is missing, happens with magento """
+        """ Import sale order: website_id is missing, happens with shopware """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, 900000692)
-        order_model = self.env['magento.sale.order']
+        order_model = self.env['shopware.sale.order']
         order = order_model.search([('backend_id', '=', backend_id),
-                                    ('magento_id', '=', '900000692')])
+                                    ('shopware_id', '=', '900000692')])
         self.assertEqual(len(order), 1)
 
     def test_import_sale_order_with_prefix(self):
         """ Import sale order with prefix """
         backend = self.backend_model.browse(self.backend_id)
         backend.write({'sale_prefix': 'EC'})
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend.id, 900000693)
-        order_model = self.env['magento.sale.order']
+        order_model = self.env['shopware.sale.order']
         order = order_model.search([('backend_id', '=', backend.id),
-                                    ('magento_id', '=', '900000693')])
+                                    ('shopware_id', '=', '900000693')])
         self.assertEqual(len(order), 1)
         self.assertEqual(order.name, 'EC900000693')
 
     def test_import_sale_order_with_configurable(self):
         """ Import sale order with configurable product """
         backend_id = self.backend_id
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, 900000694)
-        mag_order_model = self.env['magento.sale.order']
+        mag_order_model = self.env['shopware.sale.order']
         mag_order = mag_order_model.search([('backend_id', '=', backend_id),
-                                            ('magento_id', '=', '900000694')])
+                                            ('shopware_id', '=', '900000694')])
         self.assertEqual(len(mag_order), 1)
-        mag_order_line_model = self.env['magento.sale.order.line']
+        mag_order_line_model = self.env['shopware.sale.order.line']
         mag_order_line = mag_order_line_model.search(
             [('backend_id', '=', backend_id),
-             ('magento_order_id', '=', mag_order.id)])
+             ('shopware_order_id', '=', mag_order.id)])
         self.assertEqual(len(mag_order_line), 1)
         order_line = mag_order_line.openerp_id
         price_unit = order_line.price_unit
@@ -234,18 +234,18 @@ class TestImportMagento(SetUpMagentoSynchronized):
     def test_import_sale_order_with_taxes_included(self):
         """ Import sale order with taxes included """
         backend_id = self.backend_id
-        storeview_model = self.env['magento.storeview']
+        storeview_model = self.env['shopware.storeview']
         storeview = storeview_model.search([('backend_id', '=', backend_id),
-                                            ('magento_id', '=', '1')])
+                                            ('shopware_id', '=', '1')])
         storeview.write({'catalog_price_tax_included': True})
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, 900000695)
-        mag_order_model = self.env['magento.sale.order']
+        mag_order_model = self.env['shopware.sale.order']
         mag_order = mag_order_model.search([('backend_id', '=', backend_id),
-                                            ('magento_id', '=', '900000695')])
+                                            ('shopware_id', '=', '900000695')])
         self.assertEqual(len(mag_order), 1)
         order = mag_order.openerp_id
         amount_total = order.amount_total
@@ -256,18 +256,18 @@ class TestImportMagento(SetUpMagentoSynchronized):
     def test_import_sale_order_with_discount(self):
         """ Import sale order with discounts"""
         backend_id = self.backend_id
-        storeview_model = self.env['magento.storeview']
+        storeview_model = self.env['shopware.storeview']
         storeview = storeview_model.search([('backend_id', '=', backend_id),
-                                            ('magento_id', '=', '2')])
+                                            ('shopware_id', '=', '2')])
         storeview.write({'catalog_price_tax_included': True})
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
-                              'magento.sale.order',
+                              'shopware.sale.order',
                               backend_id, 900000696)
-        mag_order_model = self.env['magento.sale.order']
+        mag_order_model = self.env['shopware.sale.order']
         mag_order = mag_order_model.search([('backend_id', '=', backend_id),
-                                            ('magento_id', '=', '900000696')])
+                                            ('shopware_id', '=', '900000696')])
         self.assertEqual(len(mag_order), 1)
         order = mag_order.openerp_id
         self.assertAlmostEqual(order.amount_total, 36.9500)
@@ -282,15 +282,15 @@ class TestImportMagento(SetUpMagentoSynchronized):
                           'order line %s' % line.name)
 
 
-class TestImportMagentoConcurrentSync(SetUpMagentoSynchronized):
+class TestImportShopwareConcurrentSync(SetUpShopwareSynchronized):
 
     def setUp(self):
-        super(TestImportMagentoConcurrentSync, self).setUp()
+        super(TestImportShopwareConcurrentSync, self).setUp()
         self.registry2 = RegistryManager.get(get_db_name())
         self.cr2 = self.registry2.cursor()
         self.env2 = api.Environment(self.cr2, self.env.uid, {})
         backend2 = mock.MagicMock(name='Backend Record')
-        backend2._name = 'magento.backend'
+        backend2._name = 'shopware.backend'
         backend2.id = self.backend_id
         self.backend2 = backend2
         self.connector_session2 = ConnectorSession.from_env(self.env2)
@@ -306,19 +306,19 @@ class TestImportMagentoConcurrentSync(SetUpMagentoSynchronized):
         connector_env = ConnectorEnvironment(
             self.backend,
             self.session,
-            'magento.product.category'
+            'shopware.product.category'
         )
         importer = ProductCategoryImporter(connector_env)
-        with mock_api(magento_base_responses):
+        with mock_api(shopware_base_responses):
             importer.run(1)
 
         connector_env2 = ConnectorEnvironment(
             self.backend2,
             self.connector_session2,
-            'magento.product.category'
+            'shopware.product.category'
         )
         importer2 = ProductCategoryImporter(connector_env2)
-        fields_path = ('openerp.addons.magentoerpconnect'
+        fields_path = ('openerp.addons.shopwareerpconnect'
                        '.unit.import_synchronizer.fields')
         with mock.patch(fields_path):
             with self.assertRaises(RetryableJobError):

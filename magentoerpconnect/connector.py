@@ -26,7 +26,7 @@ from openerp.addons.connector.checkpoint import checkpoint
 
 def get_environment(session, model_name, backend_id):
     """ Create an environment to work with.  """
-    backend_record = session.env['magento.backend'].browse(backend_id)
+    backend_record = session.env['shopware.backend'].browse(backend_id)
     env = ConnectorEnvironment(backend_record, session, model_name)
     lang = backend_record.default_lang_id
     lang_code = lang.code if lang else 'en_US'
@@ -37,30 +37,30 @@ def get_environment(session, model_name, backend_id):
             return env
 
 
-class MagentoBinding(models.AbstractModel):
+class ShopwareBinding(models.AbstractModel):
     """ Abstract Model for the Bindigs.
 
-    All the models used as bindings between Magento and OpenERP
-    (``magento.res.partner``, ``magento.product.product``, ...) should
+    All the models used as bindings between Shopware and OpenERP
+    (``shopware.res.partner``, ``shopware.product.product``, ...) should
     ``_inherit`` it.
     """
-    _name = 'magento.binding'
+    _name = 'shopware.binding'
     _inherit = 'external.binding'
-    _description = 'Magento Binding (abstract)'
+    _description = 'Shopware Binding (abstract)'
 
     # openerp_id = openerp-side id must be declared in concrete model
     backend_id = fields.Many2one(
-        comodel_name='magento.backend',
-        string='Magento Backend',
+        comodel_name='shopware.backend',
+        string='Shopware Backend',
         required=True,
         ondelete='restrict',
     )
-    # fields.Char because 0 is a valid Magento ID
-    magento_id = fields.Char(string='ID on Magento')
+    # fields.Char because 0 is a valid Shopware ID
+    shopware_id = fields.Char(string='ID on Shopware')
 
     _sql_constraints = [
-        ('magento_uniq', 'unique(backend_id, magento_id)',
-         'A binding already exists with the same Magento ID.'),
+        ('shopware_uniq', 'unique(backend_id, shopware_id)',
+         'A binding already exists with the same Shopware ID.'),
     ]
 
 
@@ -74,8 +74,8 @@ def add_checkpoint(session, model_name, record_id, backend_id):
     :type model_name: str
     :param record_id: ID of the record to be reviewed
     :type record_id: int
-    :param backend_id: ID of the Magento Backend
+    :param backend_id: ID of the Shopware Backend
     :type backend_id: int
     """
     return checkpoint.add_checkpoint(session, model_name, record_id,
-                                     'magento.backend', backend_id)
+                                     'shopware.backend', backend_id)

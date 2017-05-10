@@ -10,7 +10,7 @@ from openerp.addons.connector.queue.job import (
 from openerp.addons.connector.session import (
     ConnectorSession)
 from .common import mock_api
-from .data_base import magento_base_responses
+from .data_base import shopware_base_responses
 from ..unit.import_synchronizer import import_batch, import_record
 from ..unit.export_synchronizer import export_record
 
@@ -20,33 +20,33 @@ class TestRelatedActionStorage(common.TransactionCase):
 
     def setUp(self):
         super(TestRelatedActionStorage, self).setUp()
-        backend_model = self.env['magento.backend']
+        backend_model = self.env['shopware.backend']
         self.session = ConnectorSession(self.env.cr, self.env.uid,
                                         context=self.env.context)
         warehouse = self.env.ref('stock.warehouse0')
         self.backend = backend_model.create(
-            {'name': 'Test Magento',
+            {'name': 'Test Shopware',
              'version': '1.7',
              'location': 'http://anyurl',
              'username': 'username',
              'warehouse_id': warehouse.id,
              'password': '42'})
         # import the base informations
-        with mock_api(magento_base_responses):
-            import_batch(self.session, 'magento.website', self.backend.id)
-            import_batch(self.session, 'magento.store', self.backend.id)
-            import_batch(self.session, 'magento.storeview', self.backend.id)
-        self.MagentoProduct = self.env['magento.product.product']
+        with mock_api(shopware_base_responses):
+            import_batch(self.session, 'shopware.website', self.backend.id)
+            import_batch(self.session, 'shopware.store', self.backend.id)
+            import_batch(self.session, 'shopware.storeview', self.backend.id)
+        self.ShopwareProduct = self.env['shopware.product.product']
         self.QueueJob = self.env['queue.job']
 
     def test_unwrap_binding(self):
         """ Open a related action opening an unwrapped binding """
         product = self.env.ref('product.product_product_7')
-        magento_product = self.MagentoProduct.create(
+        shopware_product = self.ShopwareProduct.create(
             {'openerp_id': product.id,
              'backend_id': self.backend.id})
-        stored = self._create_job(export_record, 'magento.product.product',
-                                  magento_product.id)
+        stored = self._create_job(export_record, 'shopware.product.product',
+                                  shopware_product.id)
         expected = {
             'name': mock.ANY,
             'type': 'ir.actions.act_window',
@@ -66,9 +66,9 @@ class TestRelatedActionStorage(common.TransactionCase):
         return stored
 
     def test_link(self):
-        """ Open a related action opening an url on Magento """
+        """ Open a related action opening an url on Shopware """
         self.backend.write({'admin_location': 'http://www.example.com/admin'})
-        stored = self._create_job(import_record, 'magento.product.product',
+        stored = self._create_job(import_record, 'shopware.product.product',
                                   self.backend.id, 123456)
         url = 'http://www.example.com/admin/catalog_product/edit/id/123456'
         expected = {
@@ -82,7 +82,7 @@ class TestRelatedActionStorage(common.TransactionCase):
         """ Related action opening an url, admin location is not configured """
         self.backend.write({'admin_location': False})
         self.backend.refresh()
-        stored = self._create_job(import_record, 'magento.product.product',
+        stored = self._create_job(import_record, 'shopware.product.product',
                                   self.backend.id, 123456)
         with self.assertRaises(openerp.exceptions.Warning):
             stored.open_related_action()

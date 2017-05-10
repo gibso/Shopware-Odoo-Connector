@@ -36,10 +36,10 @@ from .unit.backend_adapter import (GenericAdapter,
                                    MAGENTO_DATETIME_FORMAT,
                                    )
 from .unit.import_synchronizer import (DelayedBatchImporter,
-                                       MagentoImporter,
+                                       ShopwareImporter,
                                        )
 from .unit.mapper import normalize_datetime
-from .backend import magento
+from .backend import shopware
 from .connector import get_environment
 
 _logger = logging.getLogger(__name__)
@@ -48,15 +48,15 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    magento_bind_ids = fields.One2many(
-        comodel_name='magento.res.partner',
+    shopware_bind_ids = fields.One2many(
+        comodel_name='shopware.res.partner',
         inverse_name='openerp_id',
-        string="Magento Bindings",
+        string="Shopware Bindings",
     )
-    magento_address_bind_ids = fields.One2many(
-        comodel_name='magento.address',
+    shopware_address_bind_ids = fields.One2many(
+        comodel_name='shopware.address',
         inverse_name='openerp_id',
-        string="Magento Address Bindings",
+        string="Shopware Address Bindings",
     )
     birthday = fields.Date(string='Birthday')
     company = fields.Char(string='Company')
@@ -71,11 +71,11 @@ class ResPartner(models.Model):
         return fields
 
 
-class MagentoResPartner(models.Model):
-    _name = 'magento.res.partner'
-    _inherit = 'magento.binding'
+class ShopwareResPartner(models.Model):
+    _name = 'shopware.res.partner'
+    _inherit = 'shopware.binding'
     _inherits = {'res.partner': 'openerp_id'}
-    _description = 'Magento Partner'
+    _description = 'Shopware Partner'
 
     _rec_name = 'name'
 
@@ -85,25 +85,25 @@ class MagentoResPartner(models.Model):
                                  ondelete='cascade')
     backend_id = fields.Many2one(
         related='website_id.backend_id',
-        comodel_name='magento.backend',
-        string='Magento Backend',
+        comodel_name='shopware.backend',
+        string='Shopware Backend',
         store=True,
         readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
+        # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
-    website_id = fields.Many2one(comodel_name='magento.website',
-                                 string='Magento Website',
+    website_id = fields.Many2one(comodel_name='shopware.website',
+                                 string='Shopware Website',
                                  required=True,
                                  ondelete='restrict')
-    group_id = fields.Many2one(comodel_name='magento.res.partner.category',
-                               string='Magento Group (Category)')
-    created_at = fields.Datetime(string='Created At (on Magento)',
+    group_id = fields.Many2one(comodel_name='shopware.res.partner.category',
+                               string='Shopware Group (Category)')
+    created_at = fields.Datetime(string='Created At (on Shopware)',
                                  readonly=True)
-    updated_at = fields.Datetime(string='Updated At (on Magento)',
+    updated_at = fields.Datetime(string='Updated At (on Shopware)',
                                  readonly=True)
     emailid = fields.Char(string='E-mail address')
-    taxvat = fields.Char(string='Magento VAT')
+    taxvat = fields.Char(string='Shopware VAT')
     newsletter = fields.Boolean(string='Newsletter')
     guest_customer = fields.Boolean(string='Guest Customer')
     consider_as_company = fields.Boolean(
@@ -115,11 +115,11 @@ class MagentoResPartner(models.Model):
     )
 
 
-class MagentoAddress(models.Model):
-    _name = 'magento.address'
-    _inherit = 'magento.binding'
+class ShopwareAddress(models.Model):
+    _name = 'shopware.address'
+    _inherit = 'shopware.binding'
     _inherits = {'res.partner': 'openerp_id'}
-    _description = 'Magento Address'
+    _description = 'Shopware Address'
 
     _rec_name = 'backend_id'
 
@@ -127,34 +127,34 @@ class MagentoAddress(models.Model):
                                  string='Partner',
                                  required=True,
                                  ondelete='cascade')
-    created_at = fields.Datetime(string='Created At (on Magento)',
+    created_at = fields.Datetime(string='Created At (on Shopware)',
                                  readonly=True)
-    updated_at = fields.Datetime(string='Updated At (on Magento)',
+    updated_at = fields.Datetime(string='Updated At (on Shopware)',
                                  readonly=True)
     is_default_billing = fields.Boolean(string='Default Invoice')
     is_default_shipping = fields.Boolean(string='Default Shipping')
-    magento_partner_id = fields.Many2one(comodel_name='magento.res.partner',
-                                         string='Magento Partner',
+    shopware_partner_id = fields.Many2one(comodel_name='shopware.res.partner',
+                                         string='Shopware Partner',
                                          required=True,
                                          ondelete='cascade')
     backend_id = fields.Many2one(
-        related='magento_partner_id.backend_id',
-        comodel_name='magento.backend',
-        string='Magento Backend',
+        related='shopware_partner_id.backend_id',
+        comodel_name='shopware.backend',
+        string='Shopware Backend',
         store=True,
         readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
+        # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
     website_id = fields.Many2one(
-        related='magento_partner_id.website_id',
-        comodel_name='magento.website',
-        string='Magento Website',
+        related='shopware_partner_id.website_id',
+        comodel_name='shopware.website',
+        string='Shopware Website',
         store=True,
         readonly=True,
     )
-    is_magento_order_address = fields.Boolean(
-        string='Address from a Magento Order',
+    is_shopware_order_address = fields.Boolean(
+        string='Address from a Shopware Order',
     )
 
     _sql_constraints = [
@@ -163,17 +163,17 @@ class MagentoAddress(models.Model):
     ]
 
 
-@magento
+@shopware
 class PartnerAdapter(GenericAdapter):
-    _model_name = 'magento.res.partner'
-    _magento_model = 'customer'
+    _model_name = 'shopware.res.partner'
+    _shopware_model = 'customer'
     _admin_path = '/{model}/edit/id/{id}'
 
     def _call(self, method, arguments):
         try:
             return super(PartnerAdapter, self)._call(method, arguments)
         except xmlrpclib.Fault as err:
-            # this is the error in the Magento API
+            # this is the error in the Shopware API
             # when the customer does not exist
             if err.faultCode == 102:
                 raise IDMissingInBackend
@@ -181,7 +181,7 @@ class PartnerAdapter(GenericAdapter):
                 raise
 
     def search(self, filters=None, from_date=None, to_date=None,
-               magento_website_ids=None):
+               shopware_website_ids=None):
         """ Search records according to some criteria and return a
         list of ids
 
@@ -198,33 +198,33 @@ class PartnerAdapter(GenericAdapter):
         if to_date is not None:
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
-        if magento_website_ids is not None:
-            filters['website_id'] = {'in': magento_website_ids}
+        if shopware_website_ids is not None:
+            filters['website_id'] = {'in': shopware_website_ids}
 
         # the search method is on ol_customer instead of customer
         return self._call('ol_customer.search',
                           [filters] if filters else [{}])
 
 
-@magento
+@shopware
 class PartnerBatchImporter(DelayedBatchImporter):
-    """ Import the Magento Partners.
+    """ Import the Shopware Partners.
 
     For every partner in the list, a delayed job is created.
     """
-    _model_name = ['magento.res.partner']
+    _model_name = ['shopware.res.partner']
 
     def run(self, filters=None):
         """ Run the synchronization """
         from_date = filters.pop('from_date', None)
         to_date = filters.pop('to_date', None)
-        magento_website_ids = [filters.pop('magento_website_id')]
+        shopware_website_ids = [filters.pop('shopware_website_id')]
         record_ids = self.backend_adapter.search(
             filters,
             from_date=from_date,
             to_date=to_date,
-            magento_website_ids=magento_website_ids)
-        _logger.info('search for magento partners %s returned %s',
+            shopware_website_ids=shopware_website_ids)
+        _logger.info('search for shopware partners %s returned %s',
                      filters, record_ids)
         for record_id in record_ids:
             self._import_record(record_id)
@@ -233,9 +233,9 @@ class PartnerBatchImporter(DelayedBatchImporter):
 PartnerBatchImport = PartnerBatchImporter  # deprecated
 
 
-@magento
+@shopware
 class PartnerImportMapper(ImportMapper):
-    _model_name = 'magento.res.partner'
+    _model_name = 'shopware.res.partner'
 
     direct = [
         ('email', 'email'),
@@ -265,12 +265,12 @@ class PartnerImportMapper(ImportMapper):
     @mapping
     def customer_group_id(self, record):
         # import customer groups
-        binder = self.binder_for(model='magento.res.partner.category')
+        binder = self.binder_for(model='shopware.res.partner.category')
         category_id = binder.to_openerp(record['group_id'], unwrap=True)
 
         if category_id is None:
             raise MappingError("The partner category with "
-                               "magento id %s does not exist" %
+                               "shopware id %s does not exist" %
                                record['group_id'])
 
         # FIXME: should remove the previous tag (all the other tags from
@@ -279,14 +279,14 @@ class PartnerImportMapper(ImportMapper):
 
     @mapping
     def website_id(self, record):
-        binder = self.binder_for(model='magento.website')
+        binder = self.binder_for(model='shopware.website')
         website_id = binder.to_openerp(record['website_id'])
         return {'website_id': website_id}
 
     @only_create
     @mapping
     def company_id(self, record):
-        binder = self.binder_for(model='magento.storeview')
+        binder = self.binder_for(model='shopware.storeview')
         storeview = binder.to_openerp(record['store_id'], browse=True)
         if storeview:
             company = storeview.backend_id.company_id
@@ -296,7 +296,7 @@ class PartnerImportMapper(ImportMapper):
 
     @mapping
     def lang(self, record):
-        binder = self.binder_for(model='magento.storeview')
+        binder = self.binder_for(model='shopware.storeview')
         storeview = binder.to_openerp(record['store_id'], browse=True)
         if storeview:
             if storeview.lang_id:
@@ -328,33 +328,33 @@ class PartnerImportMapper(ImportMapper):
             return {'openerp_id': partner.id}
 
 
-@magento
-class PartnerImporter(MagentoImporter):
-    _model_name = ['magento.res.partner']
+@shopware
+class PartnerImporter(ShopwareImporter):
+    _model_name = ['shopware.res.partner']
 
     _base_mapper = PartnerImportMapper
 
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
-        record = self.magento_record
+        record = self.shopware_record
         self._import_dependency(record['group_id'],
-                                'magento.res.partner.category')
+                                'shopware.res.partner.category')
 
     def _after_import(self, partner_binding):
         """ Import the addresses """
-        book = self.unit_for(PartnerAddressBook, model='magento.address')
-        book.import_addresses(self.magento_id, partner_binding.id)
+        book = self.unit_for(PartnerAddressBook, model='shopware.address')
+        book.import_addresses(self.shopware_id, partner_binding.id)
 
 
 PartnerImport = PartnerImporter  # deprecated
 
 
-AddressInfos = namedtuple('AddressInfos', ['magento_record',
+AddressInfos = namedtuple('AddressInfos', ['shopware_record',
                                            'partner_binding_id',
                                            'merge'])
 
 
-@magento
+@shopware
 class PartnerAddressBook(ConnectorUnit):
     """ Import all addresses from the address book of a customer.
 
@@ -363,7 +363,7 @@ class PartnerAddressBook(ConnectorUnit):
         Then, it delegate the import to the appropriate importer.
 
         This is really intricate. The datamodel are different between
-        Magento and OpenERP and we have many uses cases to cover.
+        Shopware and OpenERP and we have many uses cases to cover.
 
         The first thing is that:
             - we do not import companies and individuals the same manner
@@ -382,38 +382,38 @@ class PartnerAddressBook(ConnectorUnit):
         More information on:
         https://bugs.launchpad.net/openerp-connector/+bug/1193281
     """
-    _model_name = 'magento.address'
+    _model_name = 'shopware.address'
 
-    def import_addresses(self, magento_partner_id, partner_binding_id):
-        addresses = self._get_address_infos(magento_partner_id,
+    def import_addresses(self, shopware_partner_id, partner_binding_id):
+        addresses = self._get_address_infos(shopware_partner_id,
                                             partner_binding_id)
         for address_id, infos in addresses:
-            importer = self.unit_for(MagentoImporter)
+            importer = self.unit_for(ShopwareImporter)
             importer.run(address_id, address_infos=infos)
 
-    def _get_address_infos(self, magento_partner_id, partner_binding_id):
+    def _get_address_infos(self, shopware_partner_id, partner_binding_id):
         adapter = self.unit_for(BackendAdapter)
         mag_address_ids = adapter.search({'customer_id':
-                                          {'eq': magento_partner_id}})
+                                          {'eq': shopware_partner_id}})
         if not mag_address_ids:
             return
         for address_id in mag_address_ids:
-            magento_record = adapter.read(address_id)
+            shopware_record = adapter.read(address_id)
 
             # defines if the billing address is merged with the partner
             # or imported as a standalone contact
             merge = False
-            if magento_record.get('is_default_billing'):
-                binding_model = self.env['magento.res.partner']
+            if shopware_record.get('is_default_billing'):
+                binding_model = self.env['shopware.res.partner']
                 partner_binding = binding_model.browse(partner_binding_id)
-                if magento_record.get('company'):
+                if shopware_record.get('company'):
                     # when a company is there, we never merge the contact
                     # with the partner.
                     # Copy the billing address on the company
                     # and use the name of the company for the name
                     company_mapper = self.unit_for(CompanyImportMapper,
-                                                   model='magento.res.partner')
-                    map_record = company_mapper.map_record(magento_record)
+                                                   model='shopware.res.partner')
+                    map_record = company_mapper.map_record(shopware_record)
                     parent = partner_binding.openerp_id.parent_id
                     values = map_record.values(parent_partner=parent)
                     partner_binding.write(values)
@@ -424,7 +424,7 @@ class PartnerAddressBook(ConnectorUnit):
                     # in the case if the billing address no longer
                     # has a company, reset the flag
                     partner_binding.write({'consider_as_company': False})
-            address_infos = AddressInfos(magento_record=magento_record,
+            address_infos = AddressInfos(shopware_record=shopware_record,
                                          partner_binding_id=partner_binding_id,
                                          merge=merge)
             yield address_id, address_infos
@@ -509,7 +509,7 @@ class BaseAddressImportMapper(ImportMapper):
         return
 
 
-@magento
+@shopware
 class CompanyImportMapper(BaseAddressImportMapper):
     """ Special mapping used when we import a company.
     A company is considered as such when the billing address
@@ -529,7 +529,7 @@ class CompanyImportMapper(BaseAddressImportMapper):
     effect here because the mapper is always called
     for updates.
     """
-    _model_name = 'magento.res.partner'
+    _model_name = 'shopware.res.partner'
 
     direct = BaseAddressImportMapper.direct + [
         ('company', 'name'),
@@ -540,10 +540,10 @@ class CompanyImportMapper(BaseAddressImportMapper):
         return {'consider_as_company': True}
 
 
-@magento
+@shopware
 class AddressAdapter(GenericAdapter):
-    _model_name = 'magento.address'
-    _magento_model = 'customer_address'
+    _model_name = 'shopware.address'
+    _shopware_model = 'customer_address'
 
     def search(self, filters=None):
         """ Search records according to some criterias
@@ -552,42 +552,42 @@ class AddressAdapter(GenericAdapter):
         :rtype: list
         """
         return [int(row['customer_address_id']) for row
-                in self._call('%s.list' % self._magento_model,
+                in self._call('%s.list' % self._shopware_model,
                               [filters] if filters else [{}])]
 
     def create(self, customer_id, data):
         """ Create a record on the external system """
-        return self._call('%s.create' % self._magento_model,
+        return self._call('%s.create' % self._shopware_model,
                           [customer_id, data])
 
 
-@magento
-class AddressImporter(MagentoImporter):
-    _model_name = ['magento.address']
+@shopware
+class AddressImporter(ShopwareImporter):
+    _model_name = ['shopware.address']
 
-    def run(self, magento_id, address_infos=None, force=False):
+    def run(self, shopware_id, address_infos=None, force=False):
         """ Run the synchronization """
         if address_infos is None:
             # only possible for updates
             self.address_infos = AddressInfos(None, None, None)
         else:
             self.address_infos = address_infos
-        return super(AddressImporter, self).run(magento_id, force=force)
+        return super(AddressImporter, self).run(shopware_id, force=force)
 
-    def _get_magento_data(self):
-        """ Return the raw Magento data for ``self.magento_id`` """
+    def _get_shopware_data(self):
+        """ Return the raw Shopware data for ``self.shopware_id`` """
         # we already read the data from the Partner Importer
-        if self.address_infos.magento_record:
-            return self.address_infos.magento_record
+        if self.address_infos.shopware_record:
+            return self.address_infos.shopware_record
         else:
-            return super(AddressImporter, self)._get_magento_data()
+            return super(AddressImporter, self)._get_shopware_data()
 
     def _define_partner_relationship(self, data):
         """ Link address with partner or parent company. """
         partner_binding_id = self.address_infos.partner_binding_id
         assert partner_binding_id, ("AdressInfos are required for creation of "
                                     "a new address.")
-        binder = self.binder_for('magento.res.partner')
+        binder = self.binder_for('shopware.res.partner')
         partner = binder.unwrap_binding(partner_binding_id, browse=True)
         if self.address_infos.merge:
             # it won't be imported as an independent address,
@@ -597,7 +597,7 @@ class AddressImporter(MagentoImporter):
         else:
             data['parent_id'] = partner.id
             data['lang'] = partner.lang
-        data['magento_partner_id'] = self.address_infos.partner_binding_id
+        data['shopware_partner_id'] = self.address_infos.partner_binding_id
         return data
 
     def _create(self, data):
@@ -608,9 +608,9 @@ class AddressImporter(MagentoImporter):
 AddressImport = AddressImporter  # deprecated
 
 
-@magento
+@shopware
 class AddressImportMapper(BaseAddressImportMapper):
-    _model_name = 'magento.address'
+    _model_name = 'shopware.address'
 
 # TODO fields not mapped:
 #   "suffix"=>"a",
@@ -647,13 +647,13 @@ class AddressImportMapper(BaseAddressImportMapper):
         return {'type': address_type}
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 def partner_import_batch(session, model_name, backend_id, filters=None):
-    """ Prepare the import of partners modified on Magento """
+    """ Prepare the import of partners modified on Shopware """
     if filters is None:
         filters = {}
-    assert 'magento_website_id' in filters, (
-        'Missing information about Magento Website')
+    assert 'shopware_website_id' in filters, (
+        'Missing information about Shopware Website')
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(PartnerBatchImporter)
     importer.run(filters=filters)

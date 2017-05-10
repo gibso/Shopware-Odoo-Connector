@@ -2,34 +2,34 @@
 <openerp>
   <data>
 
-    <menuitem id="menu_magento_root"
+    <menuitem id="menu_shopware_root"
         parent="connector.menu_connector_root"
-        name="Magento"
+        name="Shopware"
         sequence="10"
         groups="connector.group_connector_manager"/>
 
-    <menuitem id="menu_magento_backend"
+    <menuitem id="menu_shopware_backend"
         name="Backends"
-        parent="menu_magento_root"
-        action="action_magento_backend"/>
+        parent="menu_shopware_root"
+        action="action_shopware_backend"/>
 
-    <menuitem id="menu_magento_website"
+    <menuitem id="menu_shopware_website"
         name="Websites"
-        parent="menu_magento_root"
+        parent="menu_shopware_root"
         sequence="20"
-        action="action_magento_website"/>
+        action="action_shopware_website"/>
 
-    <menuitem id="menu_magento_store"
+    <menuitem id="menu_shopware_store"
         name="Stores"
-        parent="menu_magento_root"
+        parent="menu_shopware_root"
         sequence="30"
-        action="action_magento_store"/>
+        action="action_shopware_store"/>
 
-    <menuitem id="menu_magento_storeview"
+    <menuitem id="menu_shopware_storeview"
         name="Storeviews"
-        parent="menu_magento_root"
+        parent="menu_shopware_root"
         sequence="40"
-        action="action_magento_storeview"/>
+        action="action_shopware_storeview"/>
 
   </data>
 </openerp>

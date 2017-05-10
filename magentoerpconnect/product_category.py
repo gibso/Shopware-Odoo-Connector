@@ -32,59 +32,59 @@ from .unit.backend_adapter import (GenericAdapter,
                                    MAGENTO_DATETIME_FORMAT,
                                    )
 from .unit.import_synchronizer import (DelayedBatchImporter,
-                                       MagentoImporter,
+                                       ShopwareImporter,
                                        TranslationImporter,
                                        AddCheckpoint,
                                        )
-from .backend import magento
+from .backend import shopware
 
 _logger = logging.getLogger(__name__)
 
 
-class MagentoProductCategory(models.Model):
-    _name = 'magento.product.category'
-    _inherit = 'magento.binding'
+class ShopwareProductCategory(models.Model):
+    _name = 'shopware.product.category'
+    _inherit = 'shopware.binding'
     _inherits = {'product.category': 'openerp_id'}
-    _description = 'Magento Product Category'
+    _description = 'Shopware Product Category'
 
     openerp_id = fields.Many2one(comodel_name='product.category',
                                  string='Product Category',
                                  required=True,
                                  ondelete='cascade')
     description = fields.Text(translate=True)
-    magento_parent_id = fields.Many2one(
-        comodel_name='magento.product.category',
-        string='Magento Parent Category',
+    shopware_parent_id = fields.Many2one(
+        comodel_name='shopware.product.category',
+        string='Shopware Parent Category',
         ondelete='cascade',
     )
-    magento_child_ids = fields.One2many(
-        comodel_name='magento.product.category',
-        inverse_name='magento_parent_id',
-        string='Magento Child Categories',
+    shopware_child_ids = fields.One2many(
+        comodel_name='shopware.product.category',
+        inverse_name='shopware_parent_id',
+        string='Shopware Child Categories',
     )
 
 
 class ProductCategory(models.Model):
     _inherit = 'product.category'
 
-    magento_bind_ids = fields.One2many(
-        comodel_name='magento.product.category',
+    shopware_bind_ids = fields.One2many(
+        comodel_name='shopware.product.category',
         inverse_name='openerp_id',
-        string="Magento Bindings",
+        string="Shopware Bindings",
     )
 
 
-@magento
+@shopware
 class ProductCategoryAdapter(GenericAdapter):
-    _model_name = 'magento.product.category'
-    _magento_model = 'catalog_category'
+    _model_name = 'shopware.product.category'
+    _shopware_model = 'catalog_category'
     _admin_path = '/{model}/index/'
 
     def _call(self, method, arguments):
         try:
             return super(ProductCategoryAdapter, self)._call(method, arguments)
         except xmlrpclib.Fault as err:
-            # 101 is the error in the Magento API
+            # 101 is the error in the Shopware API
             # when the category does not exist
             if err.faultCode == 102:
                 raise IDMissingInBackend
@@ -117,7 +117,7 @@ class ProductCategoryAdapter(GenericAdapter):
 
         :rtype: dict
         """
-        return self._call('%s.info' % self._magento_model,
+        return self._call('%s.info' % self._shopware_model,
                           [int(id), storeview_id, attributes])
 
     def tree(self, parent_id=None, storeview_id=None):
@@ -134,45 +134,45 @@ class ProductCategoryAdapter(GenericAdapter):
             return category_id
         if parent_id:
             parent_id = int(parent_id)
-        tree = self._call('%s.tree' % self._magento_model,
+        tree = self._call('%s.tree' % self._shopware_model,
                           [parent_id, storeview_id])
         return filter_ids(tree)
 
     def move(self, categ_id, parent_id, after_categ_id=None):
-        return self._call('%s.move' % self._magento_model,
+        return self._call('%s.move' % self._shopware_model,
                           [categ_id, parent_id, after_categ_id])
 
     def get_assigned_product(self, categ_id):
-        return self._call('%s.assignedProducts' % self._magento_model,
+        return self._call('%s.assignedProducts' % self._shopware_model,
                           [categ_id])
 
     def assign_product(self, categ_id, product_id, position=0):
-        return self._call('%s.assignProduct' % self._magento_model,
+        return self._call('%s.assignProduct' % self._shopware_model,
                           [categ_id, product_id, position, 'id'])
 
     def update_product(self, categ_id, product_id, position=0):
-        return self._call('%s.updateProduct' % self._magento_model,
+        return self._call('%s.updateProduct' % self._shopware_model,
                           [categ_id, product_id, position, 'id'])
 
     def remove_product(self, categ_id, product_id):
-        return self._call('%s.removeProduct' % self._magento_model,
+        return self._call('%s.removeProduct' % self._shopware_model,
                           [categ_id, product_id, 'id'])
 
 
-@magento
+@shopware
 class ProductCategoryBatchImporter(DelayedBatchImporter):
-    """ Import the Magento Product Categories.
+    """ Import the Shopware Product Categories.
 
     For every product category in the list, a delayed job is created.
     A priority is set on the jobs according to their level to rise the
     chance to have the top level categories imported first.
     """
-    _model_name = ['magento.product.category']
+    _model_name = ['shopware.product.category']
 
-    def _import_record(self, magento_id, priority=None):
+    def _import_record(self, shopware_id, priority=None):
         """ Delay a job for the import """
         super(ProductCategoryBatchImporter, self)._import_record(
-            magento_id, priority=priority)
+            shopware_id, priority=priority)
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -203,19 +203,19 @@ class ProductCategoryBatchImporter(DelayedBatchImporter):
 ProductCategoryBatchImport = ProductCategoryBatchImporter  # deprecated
 
 
-@magento
-class ProductCategoryImporter(MagentoImporter):
-    _model_name = ['magento.product.category']
+@shopware
+class ProductCategoryImporter(ShopwareImporter):
+    _model_name = ['shopware.product.category']
 
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
-        record = self.magento_record
+        record = self.shopware_record
         # import parent category
         # the root category has a 0 parent_id
         if record.get('parent_id'):
             parent_id = record['parent_id']
             if self.binder.to_openerp(parent_id) is None:
-                importer = self.unit_for(MagentoImporter)
+                importer = self.unit_for(ShopwareImporter)
                 importer.run(parent_id)
 
     def _create(self, data):
@@ -227,15 +227,15 @@ class ProductCategoryImporter(MagentoImporter):
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         translation_importer = self.unit_for(TranslationImporter)
-        translation_importer.run(self.magento_id, binding.id)
+        translation_importer.run(self.shopware_id, binding.id)
 
 
 ProductCategoryImport = ProductCategoryImporter  # deprecated
 
 
-@magento
+@shopware
 class ProductCategoryImportMapper(ImportMapper):
-    _model_name = 'magento.product.category'
+    _model_name = 'shopware.product.category'
 
     direct = [
         ('description', 'description'),
@@ -249,8 +249,8 @@ class ProductCategoryImportMapper(ImportMapper):
             return {'name': record['name']}
 
     @mapping
-    def magento_id(self, record):
-        return {'magento_id': record['category_id']}
+    def shopware_id(self, record):
+        return {'shopware_id': record['category_id']}
 
     @mapping
     def backend_id(self, record):
@@ -266,6 +266,6 @@ class ProductCategoryImportMapper(ImportMapper):
 
         if category_id is None:
             raise MappingError("The product category with "
-                               "magento id %s is not imported." %
+                               "shopware id %s is not imported." %
                                record['parent_id'])
-        return {'parent_id': category_id, 'magento_parent_id': mag_cat_id}
+        return {'parent_id': category_id, 'shopware_parent_id': mag_cat_id}

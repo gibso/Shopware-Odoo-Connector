@@ -3,7 +3,7 @@ from . import setting
 from . import connector
 from . import backend
 
-from . import magento_model
+from . import shopware_model
 from . import product
 from . import product_category
 from . import partner

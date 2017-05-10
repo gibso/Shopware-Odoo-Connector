@@ -26,23 +26,23 @@ from openerp.addons.connector.unit.mapper import (mapping,
                                                   )
 from .unit.backend_adapter import GenericAdapter
 from .unit.import_synchronizer import DelayedBatchImporter
-from .backend import magento
+from .backend import shopware
 
 
 class ResPartnerCategory(models.Model):
     _inherit = 'res.partner.category'
 
-    magento_bind_ids = fields.One2many(
-        comodel_name='magento.res.partner.category',
+    shopware_bind_ids = fields.One2many(
+        comodel_name='shopware.res.partner.category',
         inverse_name='openerp_id',
-        string='Magento Bindings',
+        string='Shopware Bindings',
         readonly=True,
     )
 
 
-class MagentoResPartnerCategory(models.Model):
-    _name = 'magento.res.partner.category'
-    _inherit = 'magento.binding'
+class ShopwareResPartnerCategory(models.Model):
+    _name = 'shopware.res.partner.category'
+    _inherit = 'shopware.binding'
     _inherits = {'res.partner.category': 'openerp_id'}
 
     openerp_id = fields.Many2one(comodel_name='res.partner.category',
@@ -53,10 +53,10 @@ class MagentoResPartnerCategory(models.Model):
     tax_class_id = fields.Integer(string='Tax Class ID')
 
 
-@magento
+@shopware
 class PartnerCategoryAdapter(GenericAdapter):
-    _model_name = 'magento.res.partner.category'
-    _magento_model = 'ol_customer_groups'
+    _model_name = 'shopware.res.partner.category'
+    _shopware_model = 'ol_customer_groups'
     _admin_path = '/customer_group/edit/id/{id}'
 
     def search(self, filters=None):
@@ -66,22 +66,22 @@ class PartnerCategoryAdapter(GenericAdapter):
         :rtype: list
         """
         return [int(row['customer_group_id']) for row
-                in self._call('%s.list' % self._magento_model,
+                in self._call('%s.list' % self._shopware_model,
                               [filters] if filters else [{}])]
 
 
-@magento
+@shopware
 class PartnerCategoryBatchImporter(DelayedBatchImporter):
     """ Delay import of the records """
-    _model_name = ['magento.res.partner.category']
+    _model_name = ['shopware.res.partner.category']
 
 
 PartnerCategoryBatchImport = PartnerCategoryBatchImporter  # deprecated
 
 
-@magento
+@shopware
 class PartnerCategoryImportMapper(ImportMapper):
-    _model_name = 'magento.res.partner.category'
+    _model_name = 'shopware.res.partner.category'
 
     direct = [
         ('customer_group_code', 'name'),
@@ -89,8 +89,8 @@ class PartnerCategoryImportMapper(ImportMapper):
     ]
 
     @mapping
-    def magento_id(self, record):
-        return {'magento_id': record['customer_group_id']}
+    def shopware_id(self, record):
+        return {'shopware_id': record['customer_group_id']}
 
     @mapping
     def backend_id(self, record):

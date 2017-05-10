@@ -26,25 +26,25 @@ from ..connector import get_environment
 from ..related_action import link
 
 
-class MagentoDeleter(Deleter):
-    """ Base deleter for Magento """
+class ShopwareDeleter(Deleter):
+    """ Base deleter for Shopware """
 
-    def run(self, magento_id):
-        """ Run the synchronization, delete the record on Magento
+    def run(self, shopware_id):
+        """ Run the synchronization, delete the record on Shopware
 
-        :param magento_id: identifier of the record to delete
+        :param shopware_id: identifier of the record to delete
         """
-        self.backend_adapter.delete(magento_id)
-        return _('Record %s deleted on Magento') % magento_id
+        self.backend_adapter.delete(shopware_id)
+        return _('Record %s deleted on Shopware') % shopware_id
 
 
-MagentoDeleteSynchronizer = MagentoDeleter  # deprecated
+ShopwareDeleteSynchronizer = ShopwareDeleter  # deprecated
 
 
-@job(default_channel='root.magento')
+@job(default_channel='root.shopware')
 @related_action(action=link)
-def export_delete_record(session, model_name, backend_id, magento_id):
-    """ Delete a record on Magento """
+def export_delete_record(session, model_name, backend_id, shopware_id):
+    """ Delete a record on Shopware """
     env = get_environment(session, model_name, backend_id)
-    deleter = env.get_connector_unit(MagentoDeleter)
-    return deleter.run(magento_id)
+    deleter = env.get_connector_unit(ShopwareDeleter)
+    return deleter.run(shopware_id)
