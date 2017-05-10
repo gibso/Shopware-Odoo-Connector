@@ -75,7 +75,7 @@
                                     </div>
                                 </group>
                                 <group>
-                                    <label string="Import partners from all websites" class="oe_inline"/>
+                                    <label string="Import partners from all shops" class="oe_inline"/>
                                     <button name="import_partners"
                                         type="object"
                                         class="oe_highlight"
@@ -106,7 +106,7 @@
                                         string="Import in background"/>
                                 </group>
                                 <group>
-                                    <label string="Import sales orders from all store views" class="oe_inline"/>
+                                    <label string="Import sales orders from all shop views" class="oe_inline"/>
                                     <button name="import_sale_orders"
                                         type="object"
                                         class="oe_highlight"
@@ -135,9 +135,9 @@
                                 </group>
                             </page>
 
-                            <page name="website" string="Websites">
-                                <group string="Websites">
-                                    <field name="website_ids" nolabel="1"/>
+                            <page name="shop" string="Shops">
+                                <group string="Shops">
+                                    <field name="shop_ids" nolabel="1"/>
                                 </group>
                             </page>
 
@@ -167,11 +167,11 @@
         </record>
 
 
-        <record id="view_shopware_website_form" model="ir.ui.view">
-            <field name="name">shopware.website.form</field>
-            <field name="model">shopware.website</field>
+        <record id="view_shopware_shop_form" model="ir.ui.view">
+            <field name="name">shopware.shop.form</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <form string="Shopware Website" create="false"
+                <form string="Shopware Shop" create="false"
                         delete="false">
                     <sheet>
                         <h1>
@@ -205,9 +205,9 @@
                                 </group>
                             </page>
 
-                            <page name="store" string="Stores">
-                                <group string="Stores">
-                                    <field name="store_ids" nolabel="1"/>
+                            <page name="shop" string="Shops">
+                                <group string="Shops">
+                                    <field name="shop_ids" nolabel="1"/>
                                 </group>
                             </page>
 
@@ -217,11 +217,11 @@
             </field>
         </record>
 
-        <record id="view_shopware_website_tree" model="ir.ui.view">
-            <field name="name">shopware.website.tree</field>
-            <field name="model">shopware.website</field>
+        <record id="view_shopware_shop_tree" model="ir.ui.view">
+            <field name="name">shopware.shop.tree</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <tree string="Shopware Website" create="false"
+                <tree string="Shopware Shop" create="false"
                         delete="false">
                     <field name="name"/>
                     <field name="backend_id"/>
@@ -231,27 +231,27 @@
             </field>
         </record>
 
-        <record id="action_shopware_website" model="ir.actions.act_window">
-            <field name="name">Shopware Websites</field>
-            <field name="res_model">shopware.website</field>
+        <record id="action_shopware_shop" model="ir.actions.act_window">
+            <field name="name">Shopware Shops</field>
+            <field name="res_model">shopware.shop</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_shopware_website_tree"/>
+            <field name="view_id" ref="view_shopware_shop_tree"/>
         </record>
 
 
-        <record id="view_shopware_store_form" model="ir.ui.view">
-            <field name="name">shopware.store.form</field>
-            <field name="model">shopware.store</field>
+        <record id="view_shopware_shop_form" model="ir.ui.view">
+            <field name="name">shopware.shop.form</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <form string="Shopware Store" create="false"
+                <form string="Shopware Shop" create="false"
                         delete="false">
                     <sheet>
                         <h1>
                             <field name="name" class="oe_inline"/>
                         </h1>
                         <group string="Informations">
-                            <field name="website_id"/>
+                            <field name="shop_id"/>
                         </group>
                         <group string="Options">
                             <field name="account_analytic_id" groups="sale.group_analytic_accounting" class="oe_read_only"/>
@@ -264,9 +264,9 @@
                         </group>
 
                         <notebook>
-                            <page name="storeview" string="Storeviews">
-                                <group string="Storeviews">
-                                    <field name="storeview_ids" nolabel="1"/>
+                            <page name="shop" string="Shops">
+                                <group string="Shops">
+                                    <field name="shop_ids" nolabel="1"/>
                                 </group>
                             </page>
                         </notebook>
@@ -275,32 +275,32 @@
             </field>
         </record>
 
-        <record id="view_shopware_store_tree" model="ir.ui.view">
-            <field name="name">shopware.store.tree</field>
-            <field name="model">shopware.store</field>
+        <record id="view_shopware_shop_tree" model="ir.ui.view">
+            <field name="name">shopware.shop.tree</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <tree string="Shopware Store" create="false"
+                <tree string="Shopware Shop" create="false"
                         delete="false">
                     <field name="name"/>
-                    <field name="website_id"/>
+                    <field name="shop_id"/>
                 </tree>
             </field>
         </record>
 
-        <record id="action_shopware_store" model="ir.actions.act_window">
-            <field name="name">Shopware Stores</field>
-            <field name="res_model">shopware.store</field>
+        <record id="action_shopware_shop" model="ir.actions.act_window">
+            <field name="name">Shopware Shops</field>
+            <field name="res_model">shopware.shop</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_shopware_store_tree"/>
+            <field name="view_id" ref="view_shopware_shop_tree"/>
         </record>
 
 
-        <record id="view_shopware_storeview_form" model="ir.ui.view">
-            <field name="name">shopware.storeview.form</field>
-            <field name="model">shopware.storeview</field>
+        <record id="view_shopware_shop_form" model="ir.ui.view">
+            <field name="name">shopware.shop.form</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <form string="Shopware Storeview" create="false"
+                <form string="Shopware Shop" create="false"
                         delete="false">
                     <sheet>
                         <h1>
@@ -308,7 +308,7 @@
                         </h1>
                         <group string="Informations">
                             <field name="code"/>
-                            <field name="store_id"/>
+                            <field name="shop_id"/>
                             <field name="sort_order"/>
                             <field name="enabled"/>
                             <field name="no_sales_order_sync"/>
@@ -354,11 +354,11 @@
             </field>
         </record>
 
-        <record id="view_shopware_storeview_tree" model="ir.ui.view">
-            <field name="name">shopware.storeview.tree</field>
-            <field name="model">shopware.storeview</field>
+        <record id="view_shopware_shop_tree" model="ir.ui.view">
+            <field name="name">shopware.shop.tree</field>
+            <field name="model">shopware.shop</field>
             <field name="arch" type="xml">
-                <tree string="Shopware Storeview" create="false"
+                <tree string="Shopware Shop" create="false"
                         delete="false">
                     <field name="name"/>
                     <field name="code"/>
@@ -366,17 +366,17 @@
                     <field name="no_sales_order_sync"/>
                     <field name="catalog_price_tax_included"/>
                     <field name="sort_order"/>
-                    <field name="store_id"/>
+                    <field name="shop_id"/>
                 </tree>
             </field>
         </record>
 
-        <record id="action_shopware_storeview" model="ir.actions.act_window">
-            <field name="name">Shopware Storeviews</field>
-            <field name="res_model">shopware.storeview</field>
+        <record id="action_shopware_shop" model="ir.actions.act_window">
+            <field name="name">Shopware Shops</field>
+            <field name="res_model">shopware.shop</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_shopware_storeview_tree"/>
+            <field name="view_id" ref="view_shopware_shop_tree"/>
         </record>
     </data>
 </openerp>

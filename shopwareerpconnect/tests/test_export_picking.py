@@ -53,7 +53,7 @@ class TestExportPicking(SetUpShopwareSynchronized):
         self.order_binding.openerp_id.action_button_confirm()
         self.picking = self.order_binding.picking_ids
         self.assertEquals(len(self.picking), 1)
-        shopware_shop = self.picking.sale_id.shopware_bind_ids[0].store_id
+        shopware_shop = self.picking.sale_id.shopware_bind_ids[0].shop_id
         shopware_shop.send_picking_done_mail = True
 
     def test_export_complete_picking(self):

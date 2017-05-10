@@ -8,7 +8,7 @@ Changelog
 * Extended the test coverage
 * Show the failed calls in the logger with the ERROR level
 * New Docker image for Shopware, mentionned in the documentation
-* Allow to choose a default sales team for sales orders on the storeviews
+* Allow to choose a default sales team for sales orders on the shops
 * Lot of improvements/cleaning of the code
 * The binders can now return records (new ``browse`` argument)
 * The Importer now pass the binding report instead of the binding_id
@@ -18,7 +18,7 @@ Changelog
 2.5.0 (2015-01-06)
 ~~~~~~~~~~~~~~~~~~
 
-* The option for tax inclusion is now configurable by storeview #74
+* The option for tax inclusion is now configurable by shop #74
 * Add a backend adapter for the product categories #58
 * Add basic units to allow handling bundle products in submodules #13
 * Add mechanisms for the export of records (lock of bindings, helper for dependencies export) #33
@@ -62,7 +62,7 @@ Changelog
 * Fix: calculate correctly the discount ratio on sales order lines (lp:1201590)
 * Possibility to exclude products from stock synchronizations
 * Products disabled on Shopware are imported disabled on OpenERP. An additional module allows more options.
-* Possibility to disable import of sales orders per storeview
+* Possibility to disable import of sales orders per shop
 * Related Actions: open the form view on the record concerned by an export job, or open the Shopware's admin page
   on importing jobs
 * Special order lines (shipping, ...) are now the last lines of an order, not the first
@@ -105,7 +105,7 @@ Changelog
 
 * Option to choose if the invoices are exported to Shopware on payment or validation (Thanks to Allison Miller)
 * Allow to define a prefix for the name of the imported sales orders (Thanks to Augustin Cisterne-Kaas)
-* Fix: 'store_id' field in the Shopware API contains the id of the storeview, and was mapped with the store. In some circumstances, sales orders may fail to import. (lp:1235269)
+* Fix: 'shop_id' field in the Shopware API contains the id of the shop, and was mapped with the shop. In some circumstances, sales orders may fail to import. (lp:1235269)
 * Support of configurable products in import of sales orders
 
 

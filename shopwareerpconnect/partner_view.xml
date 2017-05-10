@@ -34,7 +34,7 @@
                 <form string="Shopware Partner" create="false"
                        delete="false">
                     <group>
-                        <field name="website_id"/>
+                        <field name="shop_id"/>
                         <field name="backend_id"/>
                         <field name="shopware_id"/>
                         <field name="created_at"/>
@@ -56,7 +56,7 @@
                 <tree string="Shopware Partner" create="false"
                        delete="false">
                     <field name="backend_id"/>
-                    <field name="website_id"/>
+                    <field name="shop_id"/>
                 </tree>
             </field>
         </record>
@@ -68,7 +68,7 @@
                 <form string="Shopware Address" create="false"
                        delete="false">
                     <group>
-                        <field name="website_id"/>
+                        <field name="shop_id"/>
                         <field name="backend_id"/>
                         <field name="shopware_partner_id"/>
                         <field name="shopware_id"/>
@@ -88,7 +88,7 @@
                 <tree string="Shopware Address" create="false"
                        delete="false">
                     <field name="backend_id"/>
-                    <field name="website_id"/>
+                    <field name="shop_id"/>
                 </tree>
             </field>
         </record>

@@ -161,7 +161,7 @@ class ShopwarePickingExporter(Exporter):
         :returns: value of send_picking_done_mail chosen on shopware shop
         :rtype: boolean
         """
-        shopware_shop = picking.sale_id.shopware_bind_ids[0].store_id
+        shopware_shop = picking.sale_id.shopware_bind_ids[0].shop_id
         return shopware_shop.send_picking_done_mail
 
     def run(self, binding_id):
@@ -198,7 +198,7 @@ class ShopwarePickingExporter(Exporter):
                 raise
         else:
             self.binder.bind(shopware_id, binding_id)
-            # ensure that we store the external ID
+            # ensure that we shop the external ID
             self.session.commit()
 
 

@@ -296,9 +296,9 @@ DelayedBatchImport = DelayedBatchImporter  # deprecated
 
 @shopware
 class SimpleRecordImporter(ShopwareImporter):
-    """ Import one Shopware Website """
+    """ Import one Shopware Shop """
     _model_name = [
-        'shopware.website',
+        'shopware.shop',
         'shopware.res.partner.category',
     ]
 
@@ -318,19 +318,19 @@ class TranslationImporter(Importer):
                    'shopware.product.product',
                    ]
 
-    def _get_shopware_data(self, storeview_id=None):
+    def _get_shopware_data(self, shop_id=None):
         """ Return the raw Shopware data for ``self.shopware_id`` """
-        return self.backend_adapter.read(self.shopware_id, storeview_id)
+        return self.backend_adapter.read(self.shopware_id, shop_id)
 
     def run(self, shopware_id, binding_id, mapper_class=None):
         self.shopware_id = shopware_id
-        storeviews = self.env['shopware.storeview'].search(
+        shops = self.env['shopware.shop'].search(
             [('backend_id', '=', self.backend_record.id)]
         )
         default_lang = self.backend_record.default_lang_id
-        lang_storeviews = [sv for sv in storeviews
+        lang_shops = [sv for sv in shops
                            if sv.lang_id and sv.lang_id != default_lang]
-        if not lang_storeviews:
+        if not lang_shops:
             return
 
         # find the translatable fields of the model
@@ -344,8 +344,8 @@ class TranslationImporter(Importer):
             mapper = self.unit_for(mapper_class)
 
         binding = self.model.browse(binding_id)
-        for storeview in lang_storeviews:
-            lang_record = self._get_shopware_data(storeview.shopware_id)
+        for shop in lang_shops:
+            lang_record = self._get_shopware_data(shop.shopware_id)
             map_record = mapper.map_record(lang_record)
             record = map_record.values()
 
@@ -353,7 +353,7 @@ class TranslationImporter(Importer):
                         if field in translatable_fields)
 
             binding.with_context(connector_no_export=True,
-                                 lang=storeview.lang_id.code).write(data)
+                                 lang=shop.lang_id.code).write(data)
 
 
 @shopware

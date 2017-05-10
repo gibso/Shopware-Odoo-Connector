@@ -57,15 +57,15 @@ class TestSaleOrder(SetUpShopwareSynchronized):
     def test_import_options(self):
         """Test import options such as the account_analytic_account and
         the fiscal_position that can be specified at different level of the
-        backend models (backend, wesite, store and storeview)
+        backend models (backend, wesite, shop and shop)
         """
         binding = self._import_sale_order(900000691)
         self.assertFalse(binding.project_id)
         self.assertFalse(binding.fiscal_position)
-        # keep a reference to backend models the website
-        storeview_id = binding.storeview_id
-        store_id = storeview_id.store_id
-        website_id = store_id.website_id
+        # keep a reference to backend models the shop
+        shop_id = binding.shop_id
+        shop_id = shop_id.shop_id
+        shop_id = shop_id.shop_id
         binding.openerp_id.unlink()
         binding.unlink()
         # define options at the backend level
@@ -79,34 +79,34 @@ class TestSaleOrder(SetUpShopwareSynchronized):
         self.assertEquals(binding.fiscal_position, fp1)
         binding.openerp_id.unlink()
         binding.unlink()
-        # define options at the website level
+        # define options at the shop level
         account_analytic_id = self.env['account.analytic.account'].create(
             {'name': 'aaa2'})
         fp2 = self.env['account.fiscal.position'].create({'name': "fp2"})
-        website_id.specific_account_analytic_id = account_analytic_id
-        website_id.specific_fiscal_position_id = fp2.id
+        shop_id.specific_account_analytic_id = account_analytic_id
+        shop_id.specific_fiscal_position_id = fp2.id
         binding = self._import_sale_order(900000691)
         self.assertEquals(binding.project_id, account_analytic_id)
         self.assertEquals(binding.fiscal_position, fp2)
         binding.openerp_id.unlink()
         binding.unlink()
-        # define options at the store level
+        # define options at the shop level
         account_analytic_id = self.env['account.analytic.account'].create(
             {'name': 'aaa3'})
         fp3 = self.env['account.fiscal.position'].create({'name': "fp3"})
-        store_id.specific_account_analytic_id = account_analytic_id
-        store_id.specific_fiscal_position_id = fp3.id
+        shop_id.specific_account_analytic_id = account_analytic_id
+        shop_id.specific_fiscal_position_id = fp3.id
         binding = self._import_sale_order(900000691)
         self.assertEquals(binding.project_id, account_analytic_id)
         self.assertEquals(binding.fiscal_position, fp3)
         binding.openerp_id.unlink()
         binding.unlink()
-        # define options at the storeview level
+        # define options at the shop level
         account_analytic_id = self.env['account.analytic.account'].create(
             {'name': 'aaa4'})
         fp4 = self.env['account.fiscal.position'].create({'name': "fp4"})
-        storeview_id.specific_account_analytic_id = account_analytic_id
-        storeview_id.specific_fiscal_position_id = fp4.id
+        shop_id.specific_account_analytic_id = account_analytic_id
+        shop_id.specific_fiscal_position_id = fp4.id
         binding = self._import_sale_order(900000691)
         self.assertEquals(binding.project_id, account_analytic_id)
         self.assertEquals(binding.fiscal_position, fp4)
@@ -240,14 +240,14 @@ class TestSaleOrder(SetUpShopwareSynchronized):
         self.assertEqual(new_binding.shopware_parent_id, binding)
         self.assertTrue(binding.canceled_in_backend)
 
-    def test_import_storeview_options(self):
-        """ Check if storeview options are propagated """
-        storeview = self.env['shopware.storeview'].search([
+    def test_import_shop_options(self):
+        """ Check if shop options are propagated """
+        shop = self.env['shopware.shop'].search([
             ('backend_id', '=', self.backend_id),
             ('shopware_id', '=', '1')
         ])
         team = self.env['crm.case.section'].create({'name': 'Shopware Team'})
-        storeview.section_id = team
+        shop.section_id = team
         binding = self._import_sale_order(900000691)
         self.assertEqual(binding.section_id, team)
 

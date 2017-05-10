@@ -67,9 +67,9 @@ class TestImportProductImage(common.TransactionCase):
         self.session = ConnectorSession(self.env.cr, self.env.uid,
                                         context=self.env.context)
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', self.backend_id)
-            import_batch(self.session, 'shopware.store', self.backend_id)
-            import_batch(self.session, 'shopware.storeview', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
             import_record(self.session, 'shopware.product.category',
                           self.backend_id, 1)
 

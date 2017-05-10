@@ -1,9 +1,9 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
 "access_shopware_backend","shopware_backend connector manager","model_shopware_backend","connector.group_connector_manager",1,1,1,1
 "access_shopware_binding","shopware_binding connector manager","model_shopware_binding","connector.group_connector_manager",1,1,1,1
-"access_shopware_website","shopware_website connector manager","model_shopware_website","connector.group_connector_manager",1,1,1,1
-"access_shopware_store","shopware_store connector manager","model_shopware_store","connector.group_connector_manager",1,1,1,1
-"access_shopware_storeview","shopware_storeview connector manager","model_shopware_storeview","connector.group_connector_manager",1,1,1,1
+"access_shopware_shop","shopware_shop connector manager","model_shopware_shop","connector.group_connector_manager",1,1,1,1
+"access_shopware_shop","shopware_shop connector manager","model_shopware_shop","connector.group_connector_manager",1,1,1,1
+"access_shopware_shop","shopware_shop connector manager","model_shopware_shop","connector.group_connector_manager",1,1,1,1
 "access_shopware_product_category","shopware_product_category connector manager","model_shopware_product_category","connector.group_connector_manager",1,1,1,1
 "access_shopware_product_product","shopware_product_product connector manager","model_shopware_product_product","connector.group_connector_manager",1,1,1,1
 "access_shopware_res_partner","shopware_res_partner connector manager","model_shopware_res_partner","connector.group_connector_manager",1,1,1,1
@@ -17,12 +17,12 @@
 "access_shopware_backend_sale_manager","shopware_backend manager","model_shopware_backend","base.group_sale_manager",1,0,0,0
 "access_shopware_product_product_user","shopware_product_product user","model_shopware_product_product","base.group_sale_salesman",1,0,0,0
 "access_shopware_product_product_sale_manager","shopware_product_product sale manager","model_shopware_product_product","base.group_sale_manager",1,1,1,1
-"access_shopware_store_user","shopware_store user","model_shopware_store","base.group_sale_salesman",1,0,0,0
-"access_shopware_store_sale_manager","shopware_store sale manager","model_shopware_store","base.group_sale_manager",1,0,0,0
-"access_shopware_storeview_user","shopware_storeview user","model_shopware_storeview","base.group_sale_salesman",1,0,0,0
-"access_shopware_storeview_sale_manager","shopware_storeview sale manager","model_shopware_storeview","base.group_sale_manager",1,0,0,0
-"access_shopware_website_user","shopware_website user","model_shopware_website","base.group_sale_salesman",1,0,0,0
-"access_shopware_website_sale_manager","shopware_website sale manager","model_shopware_website","base.group_sale_manager",1,0,0,0
+"access_shopware_shop_user","shopware_shop user","model_shopware_shop","base.group_sale_salesman",1,0,0,0
+"access_shopware_shop_sale_manager","shopware_shop sale manager","model_shopware_shop","base.group_sale_manager",1,0,0,0
+"access_shopware_shop_user","shopware_shop user","model_shopware_shop","base.group_sale_salesman",1,0,0,0
+"access_shopware_shop_sale_manager","shopware_shop sale manager","model_shopware_shop","base.group_sale_manager",1,0,0,0
+"access_shopware_shop_user","shopware_shop user","model_shopware_shop","base.group_sale_salesman",1,0,0,0
+"access_shopware_shop_sale_manager","shopware_shop sale manager","model_shopware_shop","base.group_sale_manager",1,0,0,0
 "access_shopware_sale_order_sale_salesman","shopware_sale_order","model_shopware_sale_order","base.group_sale_salesman",1,1,1,1
 "access_shopware_sale_order_sale_manager","shopware_sale_order","model_shopware_sale_order","base.group_sale_manager",1,1,1,1
 "access_shopware_sale_order_line_sale_salesman","shopware_sale_order_line","model_shopware_sale_order_line","base.group_sale_salesman",1,1,1,1

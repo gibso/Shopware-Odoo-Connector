@@ -100,8 +100,8 @@ msgstr ""
 #: sql_constraint:shopware.res.partner.category:0
 #: sql_constraint:shopware.sale.order:0
 #: sql_constraint:shopware.sale.order.line:0
-#: sql_constraint:shopware.stock.picking:0 sql_constraint:shopware.store:0
-#: sql_constraint:shopware.storeview:0 sql_constraint:shopware.website:0
+#: sql_constraint:shopware.stock.picking:0 sql_constraint:shopware.shop:0
+#: sql_constraint:shopware.shop:0 sql_constraint:shopware.shop:0
 msgid "A binding already exists with the same Shopware ID."
 msgstr ""
 
@@ -261,9 +261,9 @@ msgstr ""
 #. module: shopwareerpconnect
 #: field:shopware.backend,account_analytic_id:0
 #: field:shopware.config.specializer,account_analytic_id:0
-#: field:shopware.store,account_analytic_id:0
-#: field:shopware.storeview,account_analytic_id:0
-#: field:shopware.website,account_analytic_id:0
+#: field:shopware.shop,account_analytic_id:0
+#: field:shopware.shop,account_analytic_id:0
+#: field:shopware.shop,account_analytic_id:0
 msgid "Analytic account"
 msgstr "Cuenta analítica"
 
@@ -426,9 +426,9 @@ msgid "Check if the contact is a company, otherwise it is a person"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: help:shopware.storeview,no_sales_order_sync:0
+#: help:shopware.shop,no_sales_order_sync:0
 msgid ""
-"Check if the storeview is active in Shopware but its sales orders should not "
+"Check if the shop is active in Shopware but its sales orders should not "
 "be imported."
 msgstr ""
 
@@ -489,7 +489,7 @@ msgid "City"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,code:0 field:shopware.website,code:0
+#: field:shopware.shop,code:0 field:shopware.shop,code:0
 msgid "Code"
 msgstr ""
 
@@ -633,7 +633,7 @@ msgid "Create invoice on"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.store,create_invoice_on:0
+#: field:shopware.shop,create_invoice_on:0
 #: field:payment.method,create_invoice_on:0
 msgid "Create invoice on action"
 msgstr ""
@@ -654,8 +654,8 @@ msgstr ""
 #: field:shopware.res.partner.category,create_uid:0
 #: field:shopware.sale.order,create_uid:0
 #: field:shopware.sale.order.line,create_uid:0
-#: field:shopware.stock.picking,create_uid:0 field:shopware.store,create_uid:0
-#: field:shopware.storeview,create_uid:0 field:shopware.website,create_uid:0
+#: field:shopware.stock.picking,create_uid:0 field:shopware.shop,create_uid:0
+#: field:shopware.shop,create_uid:0 field:shopware.shop,create_uid:0
 msgid "Created by"
 msgstr "Creado por"
 
@@ -668,8 +668,8 @@ msgstr "Creado por"
 #: field:shopware.res.partner.category,create_date:0
 #: field:shopware.sale.order,create_date:0
 #: field:shopware.sale.order.line,create_date:0
-#: field:shopware.stock.picking,create_date:0 field:shopware.store,create_date:0
-#: field:shopware.storeview,create_date:0 field:shopware.website,create_date:0
+#: field:shopware.stock.picking,create_date:0 field:shopware.shop,create_date:0
+#: field:shopware.shop,create_date:0 field:shopware.shop,create_date:0
 msgid "Created on"
 msgstr "Creado en"
 
@@ -699,10 +699,10 @@ msgstr ""
 #: help:shopware.product.product,qty_available:0
 msgid ""
 "Current quantity of products.\n"
-"In a context with a single Stock Location, this includes goods stored at this Location, or any of its children.\n"
-"In a context with a single Warehouse, this includes goods stored in the Stock Location of this Warehouse, or any of its children.\n"
-"stored in the Stock Location of the Warehouse of this Shop, or any of its children.\n"
-"Otherwise, this includes goods stored in any Stock Location with 'internal' type."
+"In a context with a single Stock Location, this includes goods shopd at this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods shopd in the Stock Location of this Warehouse, or any of its children.\n"
+"shopd in the Stock Location of the Warehouse of this Shop, or any of its children.\n"
+"Otherwise, this includes goods shopd in any Stock Location with 'internal' type."
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -894,8 +894,8 @@ msgstr ""
 #: field:shopware.sale.order,display_name:0
 #: field:shopware.sale.order.line,display_name:0
 #: field:shopware.stock.picking,display_name:0
-#: field:shopware.store,display_name:0 field:shopware.storeview,display_name:0
-#: field:shopware.website,display_name:0
+#: field:shopware.shop,display_name:0 field:shopware.shop,display_name:0
+#: field:shopware.shop,display_name:0
 msgid "Display Name"
 msgstr "Nombre desplegado"
 
@@ -905,14 +905,14 @@ msgid "Do Not Manage Stock"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: help:shopware.store,send_invoice_paid_mail:0
+#: help:shopware.shop,send_invoice_paid_mail:0
 msgid ""
 "Does the invoice export/creation should send an email notification on "
 "Shopware side?"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: help:shopware.store,send_picking_done_mail:0
+#: help:shopware.shop,send_picking_done_mail:0
 msgid ""
 "Does the picking export/creation should send an email notification on "
 "Shopware side?"
@@ -949,7 +949,7 @@ msgid "Employee"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,enabled:0
+#: field:shopware.shop,enabled:0
 msgid "Enabled"
 msgstr ""
 
@@ -1000,9 +1000,9 @@ msgstr ""
 #. module: shopwareerpconnect
 #: field:shopware.backend,fiscal_position_id:0
 #: field:shopware.config.specializer,fiscal_position_id:0
-#: field:shopware.store,fiscal_position_id:0
-#: field:shopware.storeview,fiscal_position_id:0
-#: field:shopware.website,fiscal_position_id:0
+#: field:shopware.shop,fiscal_position_id:0
+#: field:shopware.shop,fiscal_position_id:0
+#: field:shopware.shop,fiscal_position_id:0
 msgid "Fiscal position"
 msgstr ""
 
@@ -1056,9 +1056,9 @@ msgstr ""
 #: help:shopware.product.product,virtual_available:0
 msgid ""
 "Forecast quantity (computed as Quantity On Hand - Outgoing + Incoming)\n"
-"In a context with a single Stock Location, this includes goods stored in this location, or any of its children.\n"
-"In a context with a single Warehouse, this includes goods stored in the Stock Location of this Warehouse, or any of its children.\n"
-"Otherwise, this includes goods stored in any Stock Location with 'internal' type."
+"In a context with a single Stock Location, this includes goods shopd in this location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods shopd in the Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods shopd in any Stock Location with 'internal' type."
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -1140,8 +1140,8 @@ msgstr ""
 #: field:shopware.product.product,id:0 field:shopware.res.partner,id:0
 #: field:shopware.res.partner.category,id:0 field:shopware.sale.order,id:0
 #: field:shopware.sale.order.line,id:0 field:shopware.stock.picking,id:0
-#: field:shopware.store,id:0 field:shopware.storeview,id:0
-#: field:shopware.website,id:0
+#: field:shopware.shop,id:0 field:shopware.shop,id:0
+#: field:shopware.shop,id:0
 msgid "ID"
 msgstr "ID"
 
@@ -1154,8 +1154,8 @@ msgstr "ID"
 #: field:shopware.res.partner.category,shopware_id:0
 #: field:shopware.sale.order,shopware_id:0
 #: field:shopware.sale.order.line,shopware_id:0
-#: field:shopware.stock.picking,shopware_id:0 field:shopware.store,shopware_id:0
-#: field:shopware.storeview,shopware_id:0 field:shopware.website,shopware_id:0
+#: field:shopware.stock.picking,shopware_id:0 field:shopware.shop,shopware_id:0
+#: field:shopware.shop,shopware_id:0 field:shopware.shop,shopware_id:0
 msgid "ID on Shopware"
 msgstr ""
 
@@ -1170,7 +1170,7 @@ msgstr ""
 #: help:shopware.backend,default_lang_id:0
 msgid ""
 "If a default language is selected, the records will be imported in the translation of this language.\n"
-"Note that a similar configuration exists for each storeview."
+"Note that a similar configuration exists for each shop."
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -1207,30 +1207,30 @@ msgstr ""
 msgid ""
 "If specified, this analytic account will be used to fill the field  on the "
 "sale order created by the connector. The value can also be specified on "
-"website or the store or the store view."
+"shop or the shop or the shop view."
 msgstr ""
 
 #. module: shopwareerpconnect
 #: help:shopware.config.specializer,specific_account_analytic_id:0
-#: help:shopware.store,specific_account_analytic_id:0
-#: help:shopware.storeview,specific_account_analytic_id:0
-#: help:shopware.website,specific_account_analytic_id:0
+#: help:shopware.shop,specific_account_analytic_id:0
+#: help:shopware.shop,specific_account_analytic_id:0
+#: help:shopware.shop,specific_account_analytic_id:0
 msgid ""
 "If specified, this analytic account will be used to fill the field on the "
 "sale order created by the connector. The value can also be specified on "
-"website or the store or the store view."
+"shop or the shop or the shop view."
 msgstr ""
 
 #. module: shopwareerpconnect
 #: help:shopware.backend,fiscal_position_id:0
 #: help:shopware.config.specializer,specific_fiscal_position_id:0
-#: help:shopware.store,specific_fiscal_position_id:0
-#: help:shopware.storeview,specific_fiscal_position_id:0
-#: help:shopware.website,specific_fiscal_position_id:0
+#: help:shopware.shop,specific_fiscal_position_id:0
+#: help:shopware.shop,specific_fiscal_position_id:0
+#: help:shopware.shop,specific_fiscal_position_id:0
 msgid ""
 "If specified, this fiscal position will be used to fill the field fiscal "
 "position on the sale order created by the connector.The value can also be "
-"specified on website or the store or the store view."
+"specified on shop or the shop or the shop view."
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -1305,12 +1305,12 @@ msgid ""
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Import Sale Orders"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Import Sale Orders since"
 msgstr ""
 
@@ -1326,22 +1326,22 @@ msgstr ""
 
 #. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Import in background"
 msgstr ""
 
 #. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
-msgid "Import partners from all websites"
+msgid "Import partners from all shops"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.website,import_partners_from_date:0
+#: field:shopware.shop,import_partners_from_date:0
 msgid "Import partners from date"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Import partners since"
 msgstr ""
 
@@ -1361,19 +1361,19 @@ msgid "Import products since"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,import_orders_from_date:0
+#: field:shopware.shop,import_orders_from_date:0
 msgid "Import sale orders from date"
 msgstr ""
 
 #. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
-msgid "Import sales orders from all store views"
+msgid "Import sales orders from all shop views"
 msgstr ""
 
 #. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Imports"
 msgstr ""
 
@@ -1394,9 +1394,9 @@ msgid "Incoterm"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.store:shopwareerpconnect.view_shopware_store_form
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Informations"
 msgstr ""
 
@@ -1590,7 +1590,7 @@ msgstr ""
 
 #. module: shopwareerpconnect
 #: field:shopware.address,lang:0 field:shopware.res.partner,lang:0
-#: field:shopware.storeview,lang_id:0
+#: field:shopware.shop,lang_id:0
 msgid "Language"
 msgstr ""
 
@@ -1616,8 +1616,8 @@ msgstr "Fecha de último mensaje"
 #: field:shopware.sale.order,__last_update:0
 #: field:shopware.sale.order.line,__last_update:0
 #: field:shopware.stock.picking,__last_update:0
-#: field:shopware.store,__last_update:0 field:shopware.storeview,__last_update:0
-#: field:shopware.website,__last_update:0
+#: field:shopware.shop,__last_update:0 field:shopware.shop,__last_update:0
+#: field:shopware.shop,__last_update:0
 msgid "Last Modified on"
 msgstr "Ultima modificacion realizada"
 
@@ -1630,8 +1630,8 @@ msgstr "Ultima modificacion realizada"
 #: field:shopware.res.partner.category,write_uid:0
 #: field:shopware.sale.order,write_uid:0
 #: field:shopware.sale.order.line,write_uid:0
-#: field:shopware.stock.picking,write_uid:0 field:shopware.store,write_uid:0
-#: field:shopware.storeview,write_uid:0 field:shopware.website,write_uid:0
+#: field:shopware.stock.picking,write_uid:0 field:shopware.shop,write_uid:0
+#: field:shopware.shop,write_uid:0 field:shopware.shop,write_uid:0
 msgid "Last Updated by"
 msgstr "Ultima actualizacion por"
 
@@ -1644,8 +1644,8 @@ msgstr "Ultima actualizacion por"
 #: field:shopware.res.partner.category,write_date:0
 #: field:shopware.sale.order,write_date:0
 #: field:shopware.sale.order.line,write_date:0
-#: field:shopware.stock.picking,write_date:0 field:shopware.store,write_date:0
-#: field:shopware.storeview,write_date:0 field:shopware.website,write_date:0
+#: field:shopware.stock.picking,write_date:0 field:shopware.shop,write_date:0
+#: field:shopware.shop,write_date:0 field:shopware.shop,write_date:0
 msgid "Last Updated on"
 msgstr "Ultima actualización realizada"
 
@@ -1663,8 +1663,8 @@ msgstr ""
 #: field:shopware.res.partner.category,sync_date:0
 #: field:shopware.sale.order,sync_date:0
 #: field:shopware.sale.order.line,sync_date:0
-#: field:shopware.stock.picking,sync_date:0 field:shopware.store,sync_date:0
-#: field:shopware.storeview,sync_date:0 field:shopware.website,sync_date:0
+#: field:shopware.stock.picking,sync_date:0 field:shopware.shop,sync_date:0
+#: field:shopware.shop,sync_date:0 field:shopware.shop,sync_date:0
 msgid "Last synchronization date"
 msgstr ""
 
@@ -1736,8 +1736,8 @@ msgstr ""
 #: field:shopware.res.partner.category,backend_id:0
 #: field:shopware.sale.order,backend_id:0
 #: field:shopware.sale.order.line,backend_id:0
-#: field:shopware.stock.picking,backend_id:0 field:shopware.store,backend_id:0
-#: field:shopware.storeview,backend_id:0 field:shopware.website,backend_id:0
+#: field:shopware.stock.picking,backend_id:0 field:shopware.shop,backend_id:0
+#: field:shopware.shop,backend_id:0 field:shopware.shop,backend_id:0
 msgid "Shopware Backend"
 msgstr ""
 
@@ -1861,7 +1861,7 @@ msgstr ""
 
 #. module: shopwareerpconnect
 #: field:shopware.backend,product_binding_ids:0
-#: field:shopware.website,product_binding_ids:0
+#: field:shopware.shop,product_binding_ids:0
 msgid "Shopware Products"
 msgstr ""
 
@@ -1879,28 +1879,28 @@ msgid "Shopware Sale Order Line"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.model,name:shopwareerpconnect.model_shopware_store
-#: view:shopware.store:shopwareerpconnect.view_shopware_store_form
-#: view:shopware.store:shopwareerpconnect.view_shopware_store_tree
-msgid "Shopware Store"
+#: model:ir.model,name:shopwareerpconnect.model_shopware_shop
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_tree
+msgid "Shopware Shop"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_store
-msgid "Shopware Stores"
+#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_shop
+msgid "Shopware Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.model,name:shopwareerpconnect.model_shopware_storeview
-#: field:shopware.sale.order,storeview_id:0
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_tree
-msgid "Shopware Storeview"
+#: model:ir.model,name:shopwareerpconnect.model_shopware_shop
+#: field:shopware.sale.order,shop_id:0
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_tree
+msgid "Shopware Shop"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_storeview
-msgid "Shopware Storeviews"
+#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_shop
+msgid "Shopware Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -1914,17 +1914,17 @@ msgid "Shopware VAT"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.model,name:shopwareerpconnect.model_shopware_website
-#: field:shopware.address,website_id:0 field:shopware.res.partner,website_id:0
-#: field:shopware.store,website_id:0
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_tree
-msgid "Shopware Website"
+#: model:ir.model,name:shopwareerpconnect.model_shopware_shop
+#: field:shopware.address,shop_id:0 field:shopware.res.partner,shop_id:0
+#: field:shopware.shop,shop_id:0
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_tree
+msgid "Shopware Shop"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_website
-msgid "Shopware Websites"
+#: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_shop
+msgid "Shopware Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -2032,8 +2032,8 @@ msgstr ""
 #: field:shopware.address,name:0 field:shopware.backend,name:0
 #: field:shopware.product.category,complete_name:0
 #: field:shopware.product.category,name:0 field:shopware.product.product,name:0
-#: field:shopware.res.partner,name:0 field:shopware.store,name:0
-#: field:shopware.storeview,name:0 field:shopware.website,name:0
+#: field:shopware.res.partner,name:0 field:shopware.shop,name:0
+#: field:shopware.shop,name:0 field:shopware.shop,name:0
 msgid "Name"
 msgstr "Nombre"
 
@@ -2054,7 +2054,7 @@ msgid "Newsletter"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,no_sales_order_sync:0
+#: field:shopware.shop,no_sales_order_sync:0
 msgid "No Sales Order Synchronization"
 msgstr ""
 
@@ -2143,9 +2143,9 @@ msgid "Opt-Out"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.store:shopwareerpconnect.view_shopware_store_form
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid "Options"
 msgstr ""
 
@@ -2181,7 +2181,7 @@ msgstr ""
 
 #. module: shopwareerpconnect
 #: field:shopware.sale.order,invoiced:0
-#: selection:shopware.store,create_invoice_on:0
+#: selection:shopware.shop,create_invoice_on:0
 #: selection:payment.method,create_invoice_on:0
 msgid "Paid"
 msgstr ""
@@ -2372,7 +2372,7 @@ msgid ""
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,catalog_price_tax_included:0
+#: field:shopware.shop,catalog_price_tax_included:0
 msgid "Prices include tax"
 msgstr ""
 
@@ -2696,7 +2696,7 @@ msgstr ""
 #. module: shopwareerpconnect
 #: field:shopware.account.invoice,section_id:0
 #: field:shopware.address,section_id:0 field:shopware.res.partner,section_id:0
-#: field:shopware.sale.order,section_id:0 field:shopware.storeview,section_id:0
+#: field:shopware.sale.order,section_id:0 field:shopware.shop,section_id:0
 msgid "Sales Team"
 msgstr ""
 
@@ -2748,12 +2748,12 @@ msgid "Sell Quantity < 0 and Use Customer Notification"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.store,send_invoice_paid_mail:0
+#: field:shopware.shop,send_invoice_paid_mail:0
 msgid "Send email notification on invoice validated/paid"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.store,send_picking_done_mail:0
+#: field:shopware.shop,send_picking_done_mail:0
 msgid "Send email notification on picking done"
 msgstr ""
 
@@ -2793,11 +2793,11 @@ msgstr ""
 #: help:payment.method,create_invoice_on:0
 msgid ""
 "Should the invoice be created in Shopware when it is validated or when it is paid in OpenERP?\n"
-"If nothing is set, the option falls back to the same option on the Shopware store related to the sales order."
+"If nothing is set, the option falls back to the same option on the Shopware shop related to the sales order."
 msgstr ""
 
 #. module: shopwareerpconnect
-#: help:shopware.store,create_invoice_on:0
+#: help:shopware.shop,create_invoice_on:0
 msgid ""
 "Should the invoice be created in Shopware when it is validated or when it is paid in OpenERP?\n"
 "This only takes effect if the sales order's related payment method is not giving an option for this by itself. (See Payment Methods)"
@@ -2847,7 +2847,7 @@ msgid ""
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,sort_order:0 field:shopware.website,sort_order:0
+#: field:shopware.shop,sort_order:0 field:shopware.shop,sort_order:0
 msgid "Sort Order"
 msgstr ""
 
@@ -2859,17 +2859,17 @@ msgstr ""
 
 #. module: shopwareerpconnect
 #: field:shopware.config.specializer,specific_account_analytic_id:0
-#: field:shopware.store,specific_account_analytic_id:0
-#: field:shopware.storeview,specific_account_analytic_id:0
-#: field:shopware.website,specific_account_analytic_id:0
+#: field:shopware.shop,specific_account_analytic_id:0
+#: field:shopware.shop,specific_account_analytic_id:0
+#: field:shopware.shop,specific_account_analytic_id:0
 msgid "Specific analytic account"
 msgstr ""
 
 #. module: shopwareerpconnect
 #: field:shopware.config.specializer,specific_fiscal_position_id:0
-#: field:shopware.store,specific_fiscal_position_id:0
-#: field:shopware.storeview,specific_fiscal_position_id:0
-#: field:shopware.website,specific_fiscal_position_id:0
+#: field:shopware.shop,specific_fiscal_position_id:0
+#: field:shopware.shop,specific_fiscal_position_id:0
+#: field:shopware.shop,specific_fiscal_position_id:0
 msgid "Specific fiscal position"
 msgstr ""
 
@@ -2944,27 +2944,27 @@ msgid "Stock Valuation Account"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.storeview,store_id:0
-msgid "Store"
+#: field:shopware.shop,shop_id:0
+msgid "Shop"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_store
-#: view:shopware.website:shopwareerpconnect.view_shopware_website_form
-#: field:shopware.website,store_ids:0
-msgid "Stores"
+#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_shop
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: field:shopware.shop,shop_ids:0
+msgid "Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.sale.order,store_id:0
-msgid "Storeview"
+#: field:shopware.sale.order,shop_id:0
+msgid "Shop"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_storeview
-#: view:shopware.store:shopwareerpconnect.view_shopware_store_form
-#: field:shopware.store,storeview_ids:0
-msgid "Storeviews"
+#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_shop
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
+#: field:shopware.shop,shop_ids:0
+msgid "Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -3336,7 +3336,7 @@ msgid "This is the sum of the extra price of all attributes"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: view:shopware.storeview:shopwareerpconnect.view_shopware_storeview_form
+#: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 msgid ""
 "This option should respect the same\n"
 "                              configuration as Shopware.  Pay\n"
@@ -3630,7 +3630,7 @@ msgid "VAT Legal Statement"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: selection:shopware.store,create_invoice_on:0
+#: selection:shopware.shop,create_invoice_on:0
 #: selection:payment.method,create_invoice_on:0
 msgid "Validate"
 msgstr ""
@@ -3688,21 +3688,21 @@ msgid "Webservice user"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: field:shopware.address,website:0 field:shopware.backend,website_ids:0
-#: field:shopware.res.partner,website:0
-msgid "Website"
+#: field:shopware.address,shop:0 field:shopware.backend,shop_ids:0
+#: field:shopware.res.partner,shop:0
+msgid "Shop"
 msgstr "Sitio Web"
 
 #. module: shopwareerpconnect
-#: help:shopware.address,website:0 help:shopware.res.partner,website:0
-msgid "Website of Partner or Company"
+#: help:shopware.address,shop:0 help:shopware.res.partner,shop:0
+msgid "Shop of Partner or Company"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_website
+#: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_shop
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
-#: field:shopware.product.product,website_ids:0
-msgid "Websites"
+#: field:shopware.product.product,shop_ids:0
+msgid "Shops"
 msgstr ""
 
 #. module: shopwareerpconnect
@@ -3769,7 +3769,7 @@ msgid "Zip"
 msgstr ""
 
 #. module: shopwareerpconnect
-#: help:shopware.storeview,import_orders_from_date:0
+#: help:shopware.shop,import_orders_from_date:0
 msgid ""
 "do not consider non-imported sale orders before this date. Leave empty to "
 "import all sale orders"

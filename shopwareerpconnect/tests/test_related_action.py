@@ -16,7 +16,7 @@ from ..unit.export_synchronizer import export_record
 
 
 class TestRelatedActionStorage(common.TransactionCase):
-    """ Test related actions on stored jobs """
+    """ Test related actions on shopd jobs """
 
     def setUp(self):
         super(TestRelatedActionStorage, self).setUp()
@@ -33,9 +33,9 @@ class TestRelatedActionStorage(common.TransactionCase):
              'password': '42'})
         # import the base informations
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', self.backend.id)
-            import_batch(self.session, 'shopware.store', self.backend.id)
-            import_batch(self.session, 'shopware.storeview', self.backend.id)
+            import_batch(self.session, 'shopware.shop', self.backend.id)
+            import_batch(self.session, 'shopware.shop', self.backend.id)
+            import_batch(self.session, 'shopware.shop', self.backend.id)
         self.ShopwareProduct = self.env['shopware.product.product']
         self.QueueJob = self.env['queue.job']
 
@@ -45,7 +45,7 @@ class TestRelatedActionStorage(common.TransactionCase):
         shopware_product = self.ShopwareProduct.create(
             {'openerp_id': product.id,
              'backend_id': self.backend.id})
-        stored = self._create_job(export_record, 'shopware.product.product',
+        shopd = self._create_job(export_record, 'shopware.product.product',
                                   shopware_product.id)
         expected = {
             'name': mock.ANY,
@@ -55,20 +55,20 @@ class TestRelatedActionStorage(common.TransactionCase):
             'res_id': product.id,
             'res_model': 'product.product',
         }
-        self.assertEquals(stored.open_related_action(), expected)
+        self.assertEquals(shopd.open_related_action(), expected)
 
     def _create_job(self, func, *args):
         job = Job(func=func, args=args)
         storage = OpenERPJobStorage(self.session)
-        storage.store(job)
-        stored = self.QueueJob.search([('uuid', '=', job.uuid)])
-        self.assertEqual(len(stored), 1)
-        return stored
+        storage.shop(job)
+        shopd = self.QueueJob.search([('uuid', '=', job.uuid)])
+        self.assertEqual(len(shopd), 1)
+        return shopd
 
     def test_link(self):
         """ Open a related action opening an url on Shopware """
         self.backend.write({'admin_location': 'http://www.example.com/admin'})
-        stored = self._create_job(import_record, 'shopware.product.product',
+        shopd = self._create_job(import_record, 'shopware.product.product',
                                   self.backend.id, 123456)
         url = 'http://www.example.com/admin/catalog_product/edit/id/123456'
         expected = {
@@ -76,13 +76,13 @@ class TestRelatedActionStorage(common.TransactionCase):
             'target': 'new',
             'url': url,
         }
-        self.assertEquals(stored.open_related_action(), expected)
+        self.assertEquals(shopd.open_related_action(), expected)
 
     def test_link_no_location(self):
         """ Related action opening an url, admin location is not configured """
         self.backend.write({'admin_location': False})
         self.backend.refresh()
-        stored = self._create_job(import_record, 'shopware.product.product',
+        shopd = self._create_job(import_record, 'shopware.product.product',
                                   self.backend.id, 123456)
         with self.assertRaises(openerp.exceptions.Warning):
-            stored.open_related_action()
+            shopd.open_related_action()

@@ -82,9 +82,9 @@ class ShopwareProductProduct(models.Model):
                                  string='Product',
                                  required=True,
                                  ondelete='restrict')
-    # XXX website_ids can be computed from categories
-    website_ids = fields.Many2many(comodel_name='shopware.website',
-                                   string='Websites',
+    # XXX shop_ids can be computed from categories
+    shop_ids = fields.Many2many(comodel_name='shopware.shop',
+                                   string='Shops',
                                    readonly=True)
     created_at = fields.Date('Created At (on Shopware)')
     updated_at = fields.Date('Updated At (on Shopware)')
@@ -236,27 +236,27 @@ class ProductProductAdapter(GenericAdapter):
                 in self._call('%s.list' % self._shopware_model,
                               [filters] if filters else [{}])]
 
-    def read(self, id, storeview_id=None, attributes=None):
+    def read(self, id, shop_id=None, attributes=None):
         """ Returns the information of a record
 
         :rtype: dict
         """
         return self._call('ol_catalog_product.info',
-                          [int(id), storeview_id, attributes, 'id'])
+                          [int(id), shop_id, attributes, 'id'])
 
-    def write(self, id, data, storeview_id=None):
+    def write(self, id, data, shop_id=None):
         """ Update records on the external system """
         # XXX actually only ol_catalog_product.update works
         # the PHP connector maybe breaks the catalog_product.update
         return self._call('ol_catalog_product.update',
-                          [int(id), data, storeview_id, 'id'])
+                          [int(id), data, shop_id, 'id'])
 
-    def get_images(self, id, storeview_id=None):
-        return self._call('product_media.list', [int(id), storeview_id, 'id'])
+    def get_images(self, id, shop_id=None):
+        return self._call('product_media.list', [int(id), shop_id, 'id'])
 
-    def read_image(self, id, image_name, storeview_id=None):
+    def read_image(self, id, image_name, shop_id=None):
         return self._call('product_media.info',
-                          [int(id), image_name, storeview_id, 'id'])
+                          [int(id), image_name, shop_id, 'id'])
 
     def update_inventory(self, id, data):
         # product_stock.update is too slow
@@ -300,8 +300,8 @@ class CatalogImageImporter(Importer):
     _model_name = ['shopware.product.product',
                    ]
 
-    def _get_images(self, storeview_id=None):
-        return self.backend_adapter.get_images(self.shopware_id, storeview_id)
+    def _get_images(self, shop_id=None):
+        return self.backend_adapter.get_images(self.shopware_id, shop_id)
 
     def _sort_images(self, images):
         """ Returns a list of images sorted by their priority.
@@ -457,13 +457,13 @@ class ProductImportMapper(ImportMapper):
         return
 
     @mapping
-    def website_ids(self, record):
-        website_ids = []
-        binder = self.binder_for('shopware.website')
-        for mag_website_id in record['websites']:
-            website_id = binder.to_openerp(mag_website_id)
-            website_ids.append((4, website_id))
-        return {'website_ids': website_ids}
+    def shop_ids(self, record):
+        shop_ids = []
+        binder = self.binder_for('shopware.shop')
+        for mag_shop_id in record['shops']:
+            shop_id = binder.to_openerp(mag_shop_id)
+            shop_ids.append((4, shop_id))
+        return {'shop_ids': shop_ids}
 
     @mapping
     def categories(self, record):

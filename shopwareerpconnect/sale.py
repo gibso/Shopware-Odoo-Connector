@@ -94,10 +94,10 @@ class ShopwareSaleOrder(models.Model):
     # the parent order and link the new one to the canceled parent
     shopware_parent_id = fields.Many2one(comodel_name='shopware.sale.order',
                                         string='Parent Shopware Order')
-    storeview_id = fields.Many2one(comodel_name='shopware.storeview',
-                                   string='Shopware Storeview')
-    store_id = fields.Many2one(related='storeview_id.store_id',
-                               string='Storeview',
+    shop_id = fields.Many2one(comodel_name='shopware.shop',
+                                   string='Shopware Shop')
+    shop_id = fields.Many2one(related='shop_id.shop_id',
+                               string='Shop',
                                readonly=True)
 
 
@@ -115,7 +115,7 @@ class SaleOrder(models.Model):
     def get_parent_id(self):
         """ Return the parent order.
 
-        For Shopware sales orders, the shopware parent order is stored
+        For Shopware sales orders, the shopware parent order is shopd
         in the binding, get it from there.
         """
         super(SaleOrder, self).get_parent_id()
@@ -192,7 +192,7 @@ class ShopwareSaleOrderLine(models.Model):
         related='shopware_order_id.backend_id',
         string='Shopware Backend',
         readonly=True,
-        store=True,
+        shop=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
@@ -284,7 +284,7 @@ class SaleOrderAdapter(GenericAdapter):
                 raise
 
     def search(self, filters=None, from_date=None, to_date=None,
-               shopware_storeview_ids=None):
+               shopware_shop_ids=None):
         """ Search records according to some criteria
         and returns a list of ids
 
@@ -299,8 +299,8 @@ class SaleOrderAdapter(GenericAdapter):
         if to_date is not None:
             filters.setdefault('created_at', {})
             filters['created_at']['to'] = to_date.strftime(dt_fmt)
-        if shopware_storeview_ids is not None:
-            filters['store_id'] = {'in': shopware_storeview_ids}
+        if shopware_shop_ids is not None:
+            filters['shop_id'] = {'in': shopware_shop_ids}
 
         arguments = {'imported': False,
                      # 'limit': 200,
@@ -341,12 +341,12 @@ class SaleOrderBatchImport(DelayedBatchImporter):
         filters['state'] = {'neq': 'canceled'}
         from_date = filters.pop('from_date', None)
         to_date = filters.pop('to_date', None)
-        shopware_storeview_ids = [filters.pop('shopware_storeview_id')]
+        shopware_shop_ids = [filters.pop('shopware_shop_id')]
         record_ids = self.backend_adapter.search(
             filters,
             from_date=from_date,
             to_date=to_date,
-            shopware_storeview_ids=shopware_storeview_ids)
+            shopware_shop_ids=shopware_shop_ids)
         _logger.info('search for shopware saleorders %s returned %s',
                      filters, record_ids)
         for record_id in record_ids:
@@ -444,7 +444,7 @@ class SaleOrderImportMapper(ImportMapper):
               ('grand_total', 'total_amount'),
               ('tax_amount', 'total_amount_tax'),
               (normalize_datetime('created_at'), 'date_order'),
-              ('store_id', 'storeview_id'),
+              ('shop_id', 'shop_id'),
               ]
 
     children = [('items', 'shopware_order_line_ids', 'shopware.sale.order.line'),
@@ -568,19 +568,19 @@ class SaleOrderImportMapper(ImportMapper):
 
     @mapping
     def sales_team(self, record):
-        team = self.options.storeview.section_id
+        team = self.options.shop.section_id
         if team:
             return {'section_id': team.id}
 
     @mapping
     def project_id(self, record):
-        project_id = self.options.storeview.account_analytic_id
+        project_id = self.options.shop.account_analytic_id
         if project_id:
             return {'project_id': project_id.id}
 
     @mapping
     def fiscal_position(self, record):
-        fiscal_position = self.options.storeview.fiscal_position_id
+        fiscal_position = self.options.shop.fiscal_position_id
         if fiscal_position:
             return {'fiscal_position': fiscal_position.id}
 
@@ -749,22 +749,22 @@ class SaleOrderImporter(ShopwareImporter):
             move_comment = self.unit_for(SaleOrderMoveComment)
             move_comment.move(binding)
 
-    def _get_storeview(self, record):
-        """ Return the tax inclusion setting for the appropriate storeview """
-        storeview_binder = self.binder_for('shopware.storeview')
-        # we find storeview_id in store_id!
+    def _get_shop(self, record):
+        """ Return the tax inclusion setting for the appropriate shop """
+        shop_binder = self.binder_for('shopware.shop')
+        # we find shop_id in shop_id!
         # (http://www.shopwarecommerce.com/bug-tracking/issue?issue=15886)
-        return storeview_binder.to_openerp(record['store_id'], browse=True)
+        return shop_binder.to_openerp(record['shop_id'], browse=True)
 
     def _get_shopware_data(self):
         """ Return the raw Shopware data for ``self.shopware_id`` """
         record = super(SaleOrderImporter, self)._get_shopware_data()
-        # sometimes we don't have website_id...
+        # sometimes we don't have shop_id...
         # we fix the record!
-        if not record.get('website_id'):
-            storeview = self._get_storeview(record)
-            # deduce it from the storeview
-            record['website_id'] = storeview.store_id.website_id.shopware_id
+        if not record.get('shop_id'):
+            shop = self._get_shop(record)
+            # deduce it from the shop
+            record['shop_id'] = shop.shop_id.shop_id.shopware_id
         # sometimes we need to clean shopware items (ex : configurable
         # product in a sale)
         record = self._clean_shopware_items(record)
@@ -780,13 +780,13 @@ class SaleOrderImporter(ShopwareImporter):
         # on a non-guest order (it happens, Shopware inconsistencies are
         # common)
         if (is_guest_order or not record.get('customer_id')):
-            website_binder = self.binder_for('shopware.website')
-            oe_website_id = website_binder.to_openerp(record['website_id'])
+            shop_binder = self.binder_for('shopware.shop')
+            oe_shop_id = shop_binder.to_openerp(record['shop_id'])
 
             # search an existing partner with the same email
             partner = self.env['shopware.res.partner'].search(
                 [('emailid', '=', record['customer_email']),
-                 ('website_id', '=', oe_website_id)],
+                 ('shop_id', '=', oe_shop_id)],
                 limit=1)
 
             # if we have found one, we "fix" the record with the shopware
@@ -834,13 +834,13 @@ class SaleOrderImporter(ShopwareImporter):
                 'taxvat': record.get('customer_taxvat'),
                 'group_id': customer_group,
                 'gender': record.get('customer_gender'),
-                'store_id': record['store_id'],
+                'shop_id': record['shop_id'],
                 'created_at': normalize_datetime('created_at')(self,
                                                                record, ''),
                 'updated_at': False,
                 'created_in': False,
                 'dob': record.get('customer_dob'),
-                'website_id': record.get('website_id'),
+                'shop_id': record.get('shop_id'),
             }
             mapper = self.unit_for(PartnerImportMapper,
                                    model='shopware.res.partner')
@@ -913,27 +913,27 @@ class SaleOrderImporter(ShopwareImporter):
             "in SaleOrderImporter._import_addresses")
 
     def _create_data(self, map_record, **kwargs):
-        storeview = self._get_storeview(map_record.source)
+        shop = self._get_shop(map_record.source)
         self._check_special_fields()
         return super(SaleOrderImporter, self)._create_data(
             map_record,
-            tax_include=storeview.catalog_price_tax_included,
+            tax_include=shop.catalog_price_tax_included,
             partner_id=self.partner_id,
             partner_invoice_id=self.partner_invoice_id,
             partner_shipping_id=self.partner_shipping_id,
-            storeview=storeview,
+            shop=shop,
             **kwargs)
 
     def _update_data(self, map_record, **kwargs):
-        storeview = self._get_storeview(map_record.source)
+        shop = self._get_shop(map_record.source)
         self._check_special_fields()
         return super(SaleOrderImporter, self)._update_data(
             map_record,
-            tax_include=storeview.catalog_price_tax_included,
+            tax_include=shop.catalog_price_tax_included,
             partner_id=self.partner_id,
             partner_invoice_id=self.partner_invoice_id,
             partner_shipping_id=self.partner_shipping_id,
-            storeview=storeview,
+            shop=shop,
             **kwargs)
 
     def _import_dependencies(self):
@@ -1058,8 +1058,8 @@ def sale_order_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare a batch import of records from Shopware """
     if filters is None:
         filters = {}
-    assert 'shopware_storeview_id' in filters, ('Missing information about '
-                                               'Shopware Storeview')
+    assert 'shopware_shop_id' in filters, ('Missing information about '
+                                               'Shopware Shop')
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(SaleOrderBatchImport)
     importer.run(filters)

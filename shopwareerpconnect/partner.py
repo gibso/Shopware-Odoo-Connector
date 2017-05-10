@@ -84,16 +84,16 @@ class ShopwareResPartner(models.Model):
                                  required=True,
                                  ondelete='cascade')
     backend_id = fields.Many2one(
-        related='website_id.backend_id',
+        related='shop_id.backend_id',
         comodel_name='shopware.backend',
         string='Shopware Backend',
-        store=True,
+        shop=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
-    website_id = fields.Many2one(comodel_name='shopware.website',
-                                 string='Shopware Website',
+    shop_id = fields.Many2one(comodel_name='shopware.shop',
+                                 string='Shopware Shop',
                                  required=True,
                                  ondelete='restrict')
     group_id = fields.Many2one(comodel_name='shopware.res.partner.category',
@@ -141,16 +141,16 @@ class ShopwareAddress(models.Model):
         related='shopware_partner_id.backend_id',
         comodel_name='shopware.backend',
         string='Shopware Backend',
-        store=True,
+        shop=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
-    website_id = fields.Many2one(
-        related='shopware_partner_id.website_id',
-        comodel_name='shopware.website',
-        string='Shopware Website',
-        store=True,
+    shop_id = fields.Many2one(
+        related='shopware_partner_id.shop_id',
+        comodel_name='shopware.shop',
+        string='Shopware Shop',
+        shop=True,
         readonly=True,
     )
     is_shopware_order_address = fields.Boolean(
@@ -181,7 +181,7 @@ class PartnerAdapter(GenericAdapter):
                 raise
 
     def search(self, filters=None, from_date=None, to_date=None,
-               shopware_website_ids=None):
+               shopware_shop_ids=None):
         """ Search records according to some criteria and return a
         list of ids
 
@@ -198,8 +198,8 @@ class PartnerAdapter(GenericAdapter):
         if to_date is not None:
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
-        if shopware_website_ids is not None:
-            filters['website_id'] = {'in': shopware_website_ids}
+        if shopware_shop_ids is not None:
+            filters['shop_id'] = {'in': shopware_shop_ids}
 
         # the search method is on ol_customer instead of customer
         return self._call('ol_customer.search',
@@ -218,12 +218,12 @@ class PartnerBatchImporter(DelayedBatchImporter):
         """ Run the synchronization """
         from_date = filters.pop('from_date', None)
         to_date = filters.pop('to_date', None)
-        shopware_website_ids = [filters.pop('shopware_website_id')]
+        shopware_shop_ids = [filters.pop('shopware_shop_id')]
         record_ids = self.backend_adapter.search(
             filters,
             from_date=from_date,
             to_date=to_date,
-            shopware_website_ids=shopware_website_ids)
+            shopware_shop_ids=shopware_shop_ids)
         _logger.info('search for shopware partners %s returned %s',
                      filters, record_ids)
         for record_id in record_ids:
@@ -278,29 +278,29 @@ class PartnerImportMapper(ImportMapper):
         return {'category_id': [(4, category_id)]}
 
     @mapping
-    def website_id(self, record):
-        binder = self.binder_for(model='shopware.website')
-        website_id = binder.to_openerp(record['website_id'])
-        return {'website_id': website_id}
+    def shop_id(self, record):
+        binder = self.binder_for(model='shopware.shop')
+        shop_id = binder.to_openerp(record['shop_id'])
+        return {'shop_id': shop_id}
 
     @only_create
     @mapping
     def company_id(self, record):
-        binder = self.binder_for(model='shopware.storeview')
-        storeview = binder.to_openerp(record['store_id'], browse=True)
-        if storeview:
-            company = storeview.backend_id.company_id
+        binder = self.binder_for(model='shopware.shop')
+        shop = binder.to_openerp(record['shop_id'], browse=True)
+        if shop:
+            company = shop.backend_id.company_id
             if company:
                 return {'company_id': company.id}
         return {'company_id': False}
 
     @mapping
     def lang(self, record):
-        binder = self.binder_for(model='shopware.storeview')
-        storeview = binder.to_openerp(record['store_id'], browse=True)
-        if storeview:
-            if storeview.lang_id:
-                return {'lang': storeview.lang_id.code}
+        binder = self.binder_for(model='shopware.shop')
+        shop = binder.to_openerp(record['shop_id'], browse=True)
+        if shop:
+            if shop.lang_id:
+                return {'lang': shop.lang_id.code}
 
     @only_create
     @mapping
@@ -652,8 +652,8 @@ def partner_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of partners modified on Shopware """
     if filters is None:
         filters = {}
-    assert 'shopware_website_id' in filters, (
-        'Missing information about Shopware Website')
+    assert 'shopware_shop_id' in filters, (
+        'Missing information about Shopware Shop')
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(PartnerBatchImporter)
     importer.run(filters=filters)

@@ -35,7 +35,7 @@
  },
  'author': "Camptocamp,Akretion,Odoo Community Association (OCA)",
  'license': 'AGPL-3',
- 'website': 'http://www.odoo-shopware-connector.com',
+ 'shop': 'http://www.odoo-shopware-connector.com',
  'images': ['images/shopware_backend.png',
             'images/jobs.png',
             'images/product_binding.png',

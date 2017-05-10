@@ -48,24 +48,24 @@ class TestBaseShopware(SetUpShopwareBase):
     def test_import_backend(self):
         """ Synchronize initial metadata """
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', self.backend_id)
-            import_batch(self.session, 'shopware.store', self.backend_id)
-            import_batch(self.session, 'shopware.storeview', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
 
-        website_model = self.env['shopware.website']
-        websites = website_model.search([('backend_id', '=', self.backend_id)])
-        self.assertEqual(len(websites), 2)
+        shop_model = self.env['shopware.shop']
+        shops = shop_model.search([('backend_id', '=', self.backend_id)])
+        self.assertEqual(len(shops), 2)
 
-        store_model = self.env['shopware.store']
-        stores = store_model.search([('backend_id', '=', self.backend_id)])
-        self.assertEqual(len(stores), 2)
+        shop_model = self.env['shopware.shop']
+        shops = shop_model.search([('backend_id', '=', self.backend_id)])
+        self.assertEqual(len(shops), 2)
 
-        storeview_model = self.env['shopware.storeview']
-        storeviews = storeview_model.search(
+        shop_model = self.env['shopware.shop']
+        shops = shop_model.search(
             [('backend_id', '=', self.backend_id)])
-        self.assertEqual(len(storeviews), 4)
+        self.assertEqual(len(shops), 4)
 
-        # TODO; install & configure languages on storeviews
+        # TODO; install & configure languages on shops
 
 
 class TestImportShopware(SetUpShopwareSynchronized):
@@ -182,8 +182,8 @@ class TestImportShopware(SetUpShopwareSynchronized):
                          "If the payment term is empty, the onchanges have not"
                          " been applied.")
 
-    def test_import_sale_order_no_website_id(self):
-        """ Import sale order: website_id is missing, happens with shopware """
+    def test_import_sale_order_no_shop_id(self):
+        """ Import sale order: shop_id is missing, happens with shopware """
         backend_id = self.backend_id
         with mock_api(shopware_base_responses):
             with mock_urlopen_image():
@@ -234,10 +234,10 @@ class TestImportShopware(SetUpShopwareSynchronized):
     def test_import_sale_order_with_taxes_included(self):
         """ Import sale order with taxes included """
         backend_id = self.backend_id
-        storeview_model = self.env['shopware.storeview']
-        storeview = storeview_model.search([('backend_id', '=', backend_id),
+        shop_model = self.env['shopware.shop']
+        shop = shop_model.search([('backend_id', '=', backend_id),
                                             ('shopware_id', '=', '1')])
-        storeview.write({'catalog_price_tax_included': True})
+        shop.write({'catalog_price_tax_included': True})
         with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,
@@ -256,10 +256,10 @@ class TestImportShopware(SetUpShopwareSynchronized):
     def test_import_sale_order_with_discount(self):
         """ Import sale order with discounts"""
         backend_id = self.backend_id
-        storeview_model = self.env['shopware.storeview']
-        storeview = storeview_model.search([('backend_id', '=', backend_id),
+        shop_model = self.env['shopware.shop']
+        shop = shop_model.search([('backend_id', '=', backend_id),
                                             ('shopware_id', '=', '2')])
-        storeview.write({'catalog_price_tax_included': True})
+        shop.write({'catalog_price_tax_included': True})
         with mock_api(shopware_base_responses):
             with mock_urlopen_image():
                 import_record(self.session,

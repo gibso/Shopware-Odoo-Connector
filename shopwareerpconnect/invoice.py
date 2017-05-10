@@ -158,8 +158,8 @@ class ShopwareInvoiceExporter(Exporter):
         invoice = self.model.browse(binding_id)
 
         shopware_order = invoice.shopware_order_id
-        shopware_store = shopware_order.store_id
-        mail_notification = shopware_store.send_invoice_paid_mail
+        shopware_shop = shopware_order.shop_id
+        mail_notification = shopware_shop.send_invoice_paid_mail
 
         lines_info = self._get_lines_info(invoice)
         shopware_id = None
@@ -170,7 +170,7 @@ class ShopwareInvoiceExporter(Exporter):
         except xmlrpclib.Fault as err:
             # When the invoice is already created on Shopware, it returns:
             # <Fault 102: 'Cannot do invoice for order.'>
-            # We'll search the Shopware invoice ID to store it in OpenERP
+            # We'll search the Shopware invoice ID to shop it in OpenERP
             if err.faultCode == 102:
                 _logger.debug('Invoice already exists on Shopware for '
                               'sale order with shopware id %s, trying to find '
@@ -217,7 +217,7 @@ def invoice_create_bindings(session, model_name, record_id):
     be exported to Shopware.
     """
     invoice = session.env[model_name].browse(record_id)
-    # find the shopware store to retrieve the backend
+    # find the shopware shop to retrieve the backend
     # we use the shop as many sale orders can be related to an invoice
     for sale in invoice.sale_ids:
         for shopware_sale in sale.shopware_bind_ids:
@@ -230,12 +230,12 @@ def invoice_create_bindings(session, model_name, record_id):
                 continue
             # Check if invoice state matches configuration setting
             # for when to export an invoice
-            shopware_store = shopware_sale.store_id
+            shopware_shop = shopware_sale.shop_id
             payment_method = sale.payment_method_id
             if payment_method and payment_method.create_invoice_on:
                 create_invoice = payment_method.create_invoice_on
             else:
-                create_invoice = shopware_store.create_invoice_on
+                create_invoice = shopware_shop.create_invoice_on
 
             if create_invoice == invoice.state:
                 session.env['shopware.account.invoice'].create({

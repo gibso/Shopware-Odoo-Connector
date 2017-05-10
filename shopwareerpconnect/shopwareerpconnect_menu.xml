@@ -13,23 +13,23 @@
         parent="menu_shopware_root"
         action="action_shopware_backend"/>
 
-    <menuitem id="menu_shopware_website"
-        name="Websites"
+    <menuitem id="menu_shopware_shop"
+        name="Shops"
         parent="menu_shopware_root"
         sequence="20"
-        action="action_shopware_website"/>
+        action="action_shopware_shop"/>
 
-    <menuitem id="menu_shopware_store"
-        name="Stores"
+    <menuitem id="menu_shopware_shop"
+        name="Shops"
         parent="menu_shopware_root"
         sequence="30"
-        action="action_shopware_store"/>
+        action="action_shopware_shop"/>
 
-    <menuitem id="menu_shopware_storeview"
-        name="Storeviews"
+    <menuitem id="menu_shopware_shop"
+        name="Shops"
         parent="menu_shopware_root"
         sequence="40"
-        action="action_shopware_storeview"/>
+        action="action_shopware_shop"/>
 
   </data>
 </openerp>

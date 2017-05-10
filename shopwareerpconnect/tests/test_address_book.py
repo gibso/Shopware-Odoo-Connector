@@ -56,9 +56,9 @@ class TestImportAddressBook(common.TransactionCase):
             'warehouse_id': warehouse_id,
             'password': '42'}).id
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', self.backend_id)
-            import_batch(self.session, 'shopware.store', self.backend_id)
-            import_batch(self.session, 'shopware.storeview', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
             import_record(self.session, 'shopware.res.partner.category',
                           self.backend_id, 1)
 

@@ -123,10 +123,10 @@ class ShopwareBackend(models.Model):
         string='Company',
         readonly=True,
     )
-    website_ids = fields.One2many(
-        comodel_name='shopware.website',
+    shop_ids = fields.One2many(
+        comodel_name='shopware.shop',
         inverse_name='backend_id',
-        string='Website',
+        string='Shop',
         readonly=True,
     )
     default_lang_id = fields.Many2one(
@@ -135,7 +135,7 @@ class ShopwareBackend(models.Model):
         help="If a default language is selected, the records "
              "will be imported in the translation of this language.\n"
              "Note that a similar configuration exists "
-             "for each storeview.",
+             "for each shop.",
     )
     default_category_id = fields.Many2one(
         comodel_name='product.category',
@@ -172,15 +172,15 @@ class ShopwareBackend(models.Model):
         string='Analytic account',
         help='If specified, this analytic account will be used to fill the '
         'field  on the sale order created by the connector. The value can '
-        'also be specified on website or the store or the store view.'
+        'also be specified on shop or the shop or the shop view.'
     )
     fiscal_position_id = fields.Many2one(
         comodel_name='account.fiscal.position',
         string='Fiscal position',
         help='If specified, this fiscal position will be used to fill the '
         'field fiscal position on the sale order created by the connector.'
-        'The value can also be specified on website or the store or the '
-        'store view.'
+        'The value can also be specified on shop or the shop or the '
+        'shop view.'
     )
 
     _sql_constraints = [
@@ -192,11 +192,11 @@ class ShopwareBackend(models.Model):
     def check_shopware_structure(self):
         """ Used in each data import.
 
-        Verify if a website exists for each backend before starting the import.
+        Verify if a shop exists for each backend before starting the import.
         """
         for backend in self:
-            websites = backend.website_ids
-            if not websites:
+            shops = backend.shop_ids
+            if not shops:
                 backend.synchronize_metadata()
         return True
 
@@ -205,9 +205,9 @@ class ShopwareBackend(models.Model):
         try:
             session = ConnectorSession.from_env(self.env)
             for backend in self:
-                for model in ('shopware.website',
-                              'shopware.store',
-                              'shopware.storeview'):
+                for model in ('shopware.shop',
+                              'shopware.shop',
+                              'shopware.shop'):
                     # import directly, do not delay because this
                     # is a fast operation, a direct return is fine
                     # and it is simpler to import them sequentially
@@ -222,18 +222,18 @@ class ShopwareBackend(models.Model):
 
     @api.multi
     def import_partners(self):
-        """ Import partners from all websites """
+        """ Import partners from all shops """
         for backend in self:
             backend.check_shopware_structure()
-            backend.website_ids.import_partners()
+            backend.shop_ids.import_partners()
         return True
 
     @api.multi
     def import_sale_orders(self):
-        """ Import sale orders from all store views """
-        storeview_obj = self.env['shopware.storeview']
-        storeviews = storeview_obj.search([('backend_id', 'in', self.ids)])
-        storeviews.import_sale_orders()
+        """ Import sale orders from all shop views """
+        shop_obj = self.env['shopware.shop']
+        shops = shop_obj.search([('backend_id', 'in', self.ids)])
+        shops.import_sale_orders()
         return True
 
     @api.multi
@@ -361,15 +361,15 @@ class ShopwareConfigSpecializer(models.AbstractModel):
         string='Specific analytic account',
         help='If specified, this analytic account will be used to fill the '
         'field on the sale order created by the connector. The value can '
-        'also be specified on website or the store or the store view.'
+        'also be specified on shop or the shop or the shop view.'
     )
     specific_fiscal_position_id = fields.Many2one(
         comodel_name='account.fiscal.position',
         string='Specific fiscal position',
         help='If specified, this fiscal position will be used to fill the '
         'field fiscal position on the sale order created by the connector.'
-        'The value can also be specified on website or the store or the '
-        'store view.'
+        'The value can also be specified on shop or the shop or the '
+        'shop view.'
     )
     account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',
@@ -401,10 +401,10 @@ class ShopwareConfigSpecializer(models.AbstractModel):
                 this._parent.fiscal_position_id)
 
 
-class ShopwareWebsite(models.Model):
-    _name = 'shopware.website'
+class ShopwareShop(models.Model):
+    _name = 'shopware.shop'
     _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = 'Shopware Website'
+    _description = 'Shopware Shop'
     _parent_name = 'backend_id'
 
     _order = 'sort_order ASC, id ASC'
@@ -412,10 +412,10 @@ class ShopwareWebsite(models.Model):
     name = fields.Char(required=True, readonly=True)
     code = fields.Char(readonly=True)
     sort_order = fields.Integer(string='Sort Order', readonly=True)
-    store_ids = fields.One2many(
-        comodel_name='shopware.store',
-        inverse_name='website_id',
-        string='Stores',
+    shop_ids = fields.One2many(
+        comodel_name='shopware.shop',
+        inverse_name='shop_id',
+        string='Shops',
         readonly=True,
     )
     import_partners_from_date = fields.Datetime(
@@ -432,16 +432,16 @@ class ShopwareWebsite(models.Model):
         session = ConnectorSession(self.env.cr, self.env.uid,
                                    context=self.env.context)
         import_start_time = datetime.now()
-        for website in self:
-            backend_id = website.backend_id.id
-            if website.import_partners_from_date:
+        for shop in self:
+            backend_id = shop.backend_id.id
+            if shop.import_partners_from_date:
                 from_string = fields.Datetime.from_string
-                from_date = from_string(website.import_partners_from_date)
+                from_date = from_string(shop.import_partners_from_date)
             else:
                 from_date = None
             partner_import_batch.delay(
                 session, 'shopware.res.partner', backend_id,
-                {'shopware_website_id': website.shopware_id,
+                {'shopware_shop_id': shop.shopware_id,
                  'from_date': from_date,
                  'to_date': import_start_time})
         # Records from Shopware are imported based on their `created_at`
@@ -459,33 +459,33 @@ class ShopwareWebsite(models.Model):
         return True
 
 
-class ShopwareStore(models.Model):
-    _name = 'shopware.store'
+class ShopwareShop(models.Model):
+    _name = 'shopware.shop'
     _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = 'Shopware Store'
-    _parent_name = 'website_id'
+    _description = 'Shopware Shop'
+    _parent_name = 'shop_id'
 
     name = fields.Char()
-    website_id = fields.Many2one(
-        comodel_name='shopware.website',
-        string='Shopware Website',
+    shop_id = fields.Many2one(
+        comodel_name='shopware.shop',
+        string='Shopware Shop',
         required=True,
         readonly=True,
         ondelete='cascade',
     )
     backend_id = fields.Many2one(
         comodel_name='shopware.backend',
-        related='website_id.backend_id',
+        related='shop_id.backend_id',
         string='Shopware Backend',
-        store=True,
+        shop=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )
-    storeview_ids = fields.One2many(
-        comodel_name='shopware.storeview',
-        inverse_name='store_id',
-        string="Storeviews",
+    shop_ids = fields.One2many(
+        comodel_name='shopware.shop',
+        inverse_name='shop_id',
+        string="Shops",
         readonly=True,
     )
     send_picking_done_mail = fields.Boolean(
@@ -512,11 +512,11 @@ class ShopwareStore(models.Model):
     )
 
 
-class ShopwareStoreview(models.Model):
-    _name = 'shopware.storeview'
+class ShopwareShop(models.Model):
+    _name = 'shopware.shop'
     _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = "Shopware Storeview"
-    _parent_name = 'store_id'
+    _description = "Shopware Shop"
+    _parent_name = 'shop_id'
 
     _order = 'sort_order ASC, id ASC'
 
@@ -524,8 +524,8 @@ class ShopwareStoreview(models.Model):
     code = fields.Char(readonly=True)
     enabled = fields.Boolean(string='Enabled', readonly=True)
     sort_order = fields.Integer(string='Sort Order', readonly=True)
-    store_id = fields.Many2one(comodel_name='shopware.store',
-                               string='Store',
+    shop_id = fields.Many2one(comodel_name='shopware.shop',
+                               string='Shop',
                                ondelete='cascade',
                                readonly=True)
     lang_id = fields.Many2one(comodel_name='res.lang', string='Language')
@@ -533,9 +533,9 @@ class ShopwareStoreview(models.Model):
                                  string='Sales Team')
     backend_id = fields.Many2one(
         comodel_name='shopware.backend',
-        related='store_id.website_id.backend_id',
+        related='shop_id.shop_id.backend_id',
         string='Shopware Backend',
-        store=True,
+        shop=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
@@ -547,7 +547,7 @@ class ShopwareStoreview(models.Model):
     )
     no_sales_order_sync = fields.Boolean(
         string='No Sales Order Synchronization',
-        help='Check if the storeview is active in Shopware '
+        help='Check if the shop is active in Shopware '
              'but its sales orders should not be imported.',
     )
     catalog_price_tax_included = fields.Boolean(string='Prices include tax')
@@ -557,23 +557,23 @@ class ShopwareStoreview(models.Model):
         session = ConnectorSession(self.env.cr, self.env.uid,
                                    context=self.env.context)
         import_start_time = datetime.now()
-        for storeview in self:
-            if storeview.no_sales_order_sync:
-                _logger.debug("The storeview '%s' is active in Shopware "
+        for shop in self:
+            if shop.no_sales_order_sync:
+                _logger.debug("The shop '%s' is active in Shopware "
                               "but is configured not to import the "
-                              "sales orders", storeview.name)
+                              "sales orders", shop.name)
                 continue
-            backend_id = storeview.backend_id.id
-            if storeview.import_orders_from_date:
+            backend_id = shop.backend_id.id
+            if shop.import_orders_from_date:
                 from_string = fields.Datetime.from_string
-                from_date = from_string(storeview.import_orders_from_date)
+                from_date = from_string(shop.import_orders_from_date)
             else:
                 from_date = None
             sale_order_import_batch.delay(
                 session,
                 'shopware.sale.order',
                 backend_id,
-                {'shopware_storeview_id': storeview.shopware_id,
+                {'shopware_shop_id': shop.shopware_id,
                  'from_date': from_date,
                  'to_date': import_start_time},
                 priority=1)  # executed as soon as possible
@@ -594,40 +594,40 @@ class ShopwareStoreview(models.Model):
 
 
 @shopware
-class WebsiteAdapter(GenericAdapter):
-    _model_name = 'shopware.website'
-    _shopware_model = 'ol_websites'
-    _admin_path = 'system_store/editWebsite/website_id/{id}'
+class ShopAdapter(GenericAdapter):
+    _model_name = 'shopware.shop'
+    _shopware_model = 'ol_shops'
+    _admin_path = 'system_shop/editShop/shop_id/{id}'
 
 
 @shopware
-class StoreAdapter(GenericAdapter):
-    _model_name = 'shopware.store'
+class ShopAdapter(GenericAdapter):
+    _model_name = 'shopware.shop'
     _shopware_model = 'ol_groups'
-    _admin_path = 'system_store/editGroup/group_id/{id}'
+    _admin_path = 'system_shop/editGroup/group_id/{id}'
 
 
 @shopware
-class StoreviewAdapter(GenericAdapter):
-    _model_name = 'shopware.storeview'
-    _shopware_model = 'ol_storeviews'
-    _admin_path = 'system_store/editStore/store_id/{id}'
+class ShopAdapter(GenericAdapter):
+    _model_name = 'shopware.shop'
+    _shopware_model = 'ol_shops'
+    _admin_path = 'system_shop/editShop/shop_id/{id}'
 
 
 @shopware
 class MetadataBatchImporter(DirectBatchImporter):
     """ Import the records directly, without delaying the jobs.
 
-    Import the Shopware Websites, Stores, Storeviews
+    Import the Shopware Shops, Shops, Shops
 
     They are imported directly because this is a rare and fast operation,
     and we don't really bother if it blocks the UI during this time.
     (that's also a mean to rapidly check the connectivity with Shopware).
     """
     _model_name = [
-        'shopware.website',
-        'shopware.store',
-        'shopware.storeview',
+        'shopware.shop',
+        'shopware.shop',
+        'shopware.shop',
     ]
 
 
@@ -635,8 +635,8 @@ MetadataBatchImport = MetadataBatchImporter  # deprecated
 
 
 @shopware
-class WebsiteImportMapper(ImportMapper):
-    _model_name = 'shopware.website'
+class ShopImportMapper(ImportMapper):
+    _model_name = 'shopware.shop'
 
     direct = [('code', 'code'),
               ('sort_order', 'sort_order')]
@@ -654,21 +654,21 @@ class WebsiteImportMapper(ImportMapper):
 
 
 @shopware
-class StoreImportMapper(ImportMapper):
-    _model_name = 'shopware.store'
+class ShopImportMapper(ImportMapper):
+    _model_name = 'shopware.shop'
 
     direct = [('name', 'name')]
 
     @mapping
-    def website_id(self, record):
-        binder = self.binder_for(model='shopware.website')
-        binding_id = binder.to_openerp(record['website_id'])
-        return {'website_id': binding_id}
+    def shop_id(self, record):
+        binder = self.binder_for(model='shopware.shop')
+        binding_id = binder.to_openerp(record['shop_id'])
+        return {'shop_id': binding_id}
 
 
 @shopware
-class StoreviewImportMapper(ImportMapper):
-    _model_name = 'shopware.storeview'
+class ShopImportMapper(ImportMapper):
+    _model_name = 'shopware.shop'
 
     direct = [
         ('name', 'name'),
@@ -678,51 +678,51 @@ class StoreviewImportMapper(ImportMapper):
     ]
 
     @mapping
-    def store_id(self, record):
-        binder = self.binder_for(model='shopware.store')
+    def shop_id(self, record):
+        binder = self.binder_for(model='shopware.shop')
         binding_id = binder.to_openerp(record['group_id'])
-        return {'store_id': binding_id}
+        return {'shop_id': binding_id}
 
 
 @shopware
-class StoreImporter(ShopwareImporter):
-    """ Import one Shopware Store (create a sale.shop via _inherits) """
-    _model_name = ['shopware.store',
+class ShopImporter(ShopwareImporter):
+    """ Import one Shopware Shop (create a sale.shop via _inherits) """
+    _model_name = ['shopware.shop',
                    ]
 
     def _create(self, data):
-        binding = super(StoreImporter, self)._create(data)
-        checkpoint = self.unit_for(StoreAddCheckpoint)
+        binding = super(ShopImporter, self)._create(data)
+        checkpoint = self.unit_for(ShopAddCheckpoint)
         checkpoint.run(binding.id)
         return binding
 
 
-StoreImport = StoreImporter  # deprecated
+ShopImport = ShopImporter  # deprecated
 
 
 @shopware
-class StoreviewImporter(ShopwareImporter):
-    """ Import one Shopware Storeview """
-    _model_name = ['shopware.storeview',
+class ShopImporter(ShopwareImporter):
+    """ Import one Shopware Shop """
+    _model_name = ['shopware.shop',
                    ]
 
     def _create(self, data):
-        binding = super(StoreviewImporter, self)._create(data)
-        checkpoint = self.unit_for(StoreAddCheckpoint)
+        binding = super(ShopImporter, self)._create(data)
+        checkpoint = self.unit_for(ShopAddCheckpoint)
         checkpoint.run(binding.id)
         return binding
 
 
-StoreviewImport = StoreviewImporter  # deprecated
+ShopImport = ShopImporter  # deprecated
 
 
 @shopware
-class StoreAddCheckpoint(ConnectorUnit):
-    """ Add a connector.checkpoint on the shopware.storeview
-    or shopware.store record
+class ShopAddCheckpoint(ConnectorUnit):
+    """ Add a connector.checkpoint on the shopware.shop
+    or shopware.shop record
     """
-    _model_name = ['shopware.storeview',
-                   'shopware.store',
+    _model_name = ['shopware.shop',
+                   'shopware.shop',
                    ]
 
     def run(self, binding_id):
@@ -732,4 +732,4 @@ class StoreAddCheckpoint(ConnectorUnit):
                        self.backend_record.id)
 
 # backward compatibility
-StoreViewAddCheckpoint = shopware(StoreAddCheckpoint)
+ShopViewAddCheckpoint = shopware(ShopAddCheckpoint)

@@ -64,14 +64,14 @@ class TestExportInvoice(common.TransactionCase):
         self.period = self.env.ref('account.period_10')
         # import the base informations
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', backend.id)
-            import_batch(self.session, 'shopware.store', backend.id)
-            import_batch(self.session, 'shopware.storeview', backend.id)
+            import_batch(self.session, 'shopware.shop', backend.id)
+            import_batch(self.session, 'shopware.shop', backend.id)
+            import_batch(self.session, 'shopware.shop', backend.id)
             with mock_urlopen_image():
                 import_record(self.session,
                               'shopware.sale.order',
                               backend.id, 900000691)
-        self.stores = self.backend.mapped('website_ids.store_ids')
+        self.shops = self.backend.mapped('shop_ids.shop_ids')
         sales = self.mag_sale_model.search(
             [('backend_id', '=', backend.id),
              ('shopware_id', '=', '900000691')])
@@ -88,9 +88,9 @@ class TestExportInvoice(common.TransactionCase):
 
     def test_export_invoice_on_validate(self):
         """ Exporting an invoice: when it is validated """
-        # we setup the stores so they export the invoices as soon
+        # we setup the shops so they export the invoices as soon
         # as they are validated (open)
-        self.stores.write({'create_invoice_on': 'open'})
+        self.shops.write({'create_invoice_on': 'open'})
         # this is the consumer called when a 'shopware.account.invoice'
         # is created, it delay a job to export the invoice
         patched = 'openerp.addons.shopwareerpconnect.invoice.export_invoice'
@@ -112,9 +112,9 @@ class TestExportInvoice(common.TransactionCase):
 
     def test_export_invoice_on_paid(self):
         """ Exporting an invoice: when it is paid """
-        # we setup the stores so they export the invoices as soon
+        # we setup the shops so they export the invoices as soon
         # as they are validated (open)
-        self.stores.write({'create_invoice_on': 'paid'})
+        self.shops.write({'create_invoice_on': 'paid'})
         # this is the consumer called when a 'shopware.account.invoice'
         # is created, it delay a job to export the invoice
         patched = 'openerp.addons.shopwareerpconnect.invoice.export_invoice'
@@ -135,11 +135,11 @@ class TestExportInvoice(common.TransactionCase):
 
     def test_export_invoice_on_payment_method_validate(self):
         """ Exporting an invoice: when it is validated with payment method """
-        # we setup the stores so they export the invoices as soon
+        # we setup the shops so they export the invoices as soon
         # as they are validated (open)
         self.payment_method.write({'create_invoice_on': 'open'})
-        # ensure we use the option of the payment method, not store
-        self.stores.write({'create_invoice_on': 'paid'})
+        # ensure we use the option of the payment method, not shop
+        self.shops.write({'create_invoice_on': 'paid'})
         # this is the consumer called when a 'shopware.account.invoice'
         # is created, it delay a job to export the invoice
         patched = 'openerp.addons.shopwareerpconnect.invoice.export_invoice'
@@ -161,11 +161,11 @@ class TestExportInvoice(common.TransactionCase):
 
     def test_export_invoice_on_payment_method_paid(self):
         """ Exporting an invoice: when it is paid on payment method """
-        # we setup the stores so they export the invoices as soon
+        # we setup the shops so they export the invoices as soon
         # as they are validated (open)
         self.payment_method.write({'create_invoice_on': 'paid'})
-        # ensure we use the option of the payment method, not store
-        self.stores.write({'create_invoice_on': 'open'})
+        # ensure we use the option of the payment method, not shop
+        self.shops.write({'create_invoice_on': 'open'})
         # this is the consumer called when a 'shopware.account.invoice'
         # is created, it delay a job to export the invoice
         patched = 'openerp.addons.shopwareerpconnect.invoice.export_invoice'
@@ -208,7 +208,7 @@ class TestExportInvoice(common.TransactionCase):
         # we setup the payment method so it exports the invoices as soon
         # as they are validated (open)
         self.payment_method.write({'create_invoice_on': 'open'})
-        self.stores.write({'send_invoice_paid_mail': True})
+        self.shops.write({'send_invoice_paid_mail': True})
 
         with mock_job_delay_to_direct(job_path), \
                 mock_api(response, key_func=lambda m, a: m) as calls_done:

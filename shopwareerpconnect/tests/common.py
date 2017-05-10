@@ -38,13 +38,13 @@ from .data_base import shopware_base_responses
 class TestResponder(object):
     """ Used to simulate the calls to Shopware.
 
-    For a call (request) to Shopware, returns a stored
+    For a call (request) to Shopware, returns a shopd
     response.
     """
 
     def __init__(self, responses, key_func=None):
         """
-        The responses are stored in dict instances.
+        The responses are shopd in dict instances.
         The keys are normalized using the ``call_to_key``
         function which transform the request calls in a
         hashable form.
@@ -224,6 +224,6 @@ class SetUpShopwareSynchronized(SetUpShopwareBase):
     def setUp(self):
         super(SetUpShopwareSynchronized, self).setUp()
         with mock_api(shopware_base_responses):
-            import_batch(self.session, 'shopware.website', self.backend_id)
-            import_batch(self.session, 'shopware.store', self.backend_id)
-            import_batch(self.session, 'shopware.storeview', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)
+            import_batch(self.session, 'shopware.shop', self.backend_id)

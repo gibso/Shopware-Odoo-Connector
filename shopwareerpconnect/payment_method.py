@@ -12,5 +12,5 @@ class PaymentMethod(models.Model):
         help="Should the invoice be created in Shopware "
              "when it is validated or when it is paid in OpenERP?\n"
              "If nothing is set, the option falls back to the same option "
-             "on the Shopware store related to the sales order.",
+             "on the Shopware shop related to the sales order.",
     )

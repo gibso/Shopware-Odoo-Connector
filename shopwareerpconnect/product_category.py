@@ -112,15 +112,15 @@ class ProductCategoryAdapter(GenericAdapter):
         return self._call('oerp_catalog_category.search',
                           [filters] if filters else [{}])
 
-    def read(self, id, storeview_id=None, attributes=None):
+    def read(self, id, shop_id=None, attributes=None):
         """ Returns the information of a record
 
         :rtype: dict
         """
         return self._call('%s.info' % self._shopware_model,
-                          [int(id), storeview_id, attributes])
+                          [int(id), shop_id, attributes])
 
-    def tree(self, parent_id=None, storeview_id=None):
+    def tree(self, parent_id=None, shop_id=None):
         """ Returns a tree of product categories
 
         :rtype: dict
@@ -135,7 +135,7 @@ class ProductCategoryAdapter(GenericAdapter):
         if parent_id:
             parent_id = int(parent_id)
         tree = self._call('%s.tree' % self._shopware_model,
-                          [parent_id, storeview_id])
+                          [parent_id, shop_id])
         return filter_ids(tree)
 
     def move(self, categ_id, parent_id, after_categ_id=None):
@@ -245,7 +245,7 @@ class ProductCategoryImportMapper(ImportMapper):
     def name(self, record):
         if record['level'] == '0':  # top level category; has no name
             return {'name': self.backend_record.name}
-        if record['name']:  # may be empty in storeviews
+        if record['name']:  # may be empty in shops
             return {'name': record['name']}
 
     @mapping

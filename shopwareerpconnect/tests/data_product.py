@@ -90,7 +90,7 @@ simple_product_and_images = {
                                                         'url_key': 'ink-eater-krylon-bombear-destroyed-tee-lrg',
                                                         'url_path': 'ink-eater-krylon-bombear-destroyed-tee-lrg.html',
                                                         'visibility': '1',
-                                                        'websites': ['1'],
+                                                        'shops': ['1'],
                                                         'weight': '0.5000'},
     ('product_media.list', (122, None, 'id')): [{'exclude': '1',
                                                  'file': '/i/n/ink-eater-krylon-bombear-destroyed-tee-2.jpg',

@@ -40,9 +40,9 @@ class ShopwareModelBinder(ShopwareBinder):
     fields belonging to the Shopware instance.
     """
     _model_name = [
-        'shopware.website',
-        'shopware.store',
-        'shopware.storeview',
+        'shopware.shop',
+        'shopware.shop',
+        'shopware.shop',
         'shopware.res.partner',
         'shopware.address',
         'shopware.res.partner.category',

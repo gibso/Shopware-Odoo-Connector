@@ -233,7 +233,7 @@ class ShopwareExporter(ShopwareBaseExporter):
 
                      So you *must* take care not to modify the OpenERP
                      database during an export, excepted when writing
-                     back the external ID or eventually to store
+                     back the external ID or eventually to shop
                      external data that we have to keep on this side.
 
                      You should call this method only at the beginning
