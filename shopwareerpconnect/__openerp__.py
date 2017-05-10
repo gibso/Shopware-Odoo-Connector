@@ -30,9 +30,6 @@
              'connector_ecommerce',
              'product_m2mcategories',
              ],
- 'external_dependencies': {
-     'python': ['shopware'],
- },
  'author': "Camptocamp,Akretion,Odoo Community Association (OCA)",
  'license': 'AGPL-3',
  'shop': 'http://www.odoo-shopware-connector.com',
