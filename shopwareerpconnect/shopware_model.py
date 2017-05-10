@@ -352,24 +352,76 @@ class ShopwareBackend(models.Model):
         output_recorder(path)
         return path
 
+class ShopwareShop(models.Model):
+    _name = 'shopware.shop'
+    _inherit = ['shopware.binding']
+    _description = 'Shopware Shop'
+    _parent_name = 'backend_id'
 
-class ShopwareConfigSpecializer(models.AbstractModel):
-    _name = 'shopware.config.specializer'
+    _order = 'sort_order ASC, id ASC'
 
+    name = fields.Char(required=True, readonly=True)
+    code = fields.Char(readonly=True)
+    enabled = fields.Boolean(string='Enabled', readonly=True)
+    sort_order = fields.Integer(string='Sort Order', readonly=True)
+    lang_id = fields.Many2one(comodel_name='res.lang', string='Language')
+    import_partners_from_date = fields.Datetime(
+        string='Import partners from date',
+    )
+    product_binding_ids = fields.Many2many(
+        comodel_name='shopware.product.product',
+        string='Shopware Products',
+        readonly=True,
+    )
+    send_picking_done_mail = fields.Boolean(
+        string='Send email notification on picking done',
+        help="Does the picking export/creation should send "
+             "an email notification on Shopware side?",
+    )
+    send_invoice_paid_mail = fields.Boolean(
+        string='Send email notification on invoice validated/paid',
+        help="Does the invoice export/creation should send "
+             "an email notification on Shopware side?",
+    )
+    create_invoice_on = fields.Selection(
+        selection=[('open', 'Validate'),
+                   ('paid', 'Paid')],
+        string='Create invoice on action',
+        default='paid',
+        required=True,
+        help="Should the invoice be created in Shopware "
+             "when it is validated or when it is paid in OpenERP?\n"
+             "This only takes effect if the sales order's related "
+             "payment method is not giving an option for this by "
+             "itself. (See Payment Methods)",
+    )
+    section_id = fields.Many2one(comodel_name='crm.case.section',
+                                 string='Sales Team')
+    import_orders_from_date = fields.Datetime(
+        string='Import sale orders from date',
+        help='do not consider non-imported sale orders before this date. '
+             'Leave empty to import all sale orders',
+    )
+    no_sales_order_sync = fields.Boolean(
+        string='No Sales Order Synchronization',
+        help='Check if the shop is active in Shopware '
+             'but its sales orders should not be imported.',
+    )
+    catalog_price_tax_included = fields.Boolean(string='Prices include tax')
     specific_account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',
         string='Specific analytic account',
         help='If specified, this analytic account will be used to fill the '
-        'field on the sale order created by the connector. The value can '
-        'also be specified on shop or the shop or the shop view.'
+             'field on the sale order created by the connector. The value can '
+             'also be specified on shop or the shop or the shop view.'
     )
     specific_fiscal_position_id = fields.Many2one(
         comodel_name='account.fiscal.position',
         string='Specific fiscal position',
         help='If specified, this fiscal position will be used to fill the '
-        'field fiscal position on the sale order created by the connector.'
-        'The value can also be specified on shop or the shop or the '
-        'shop view.'
+             'field fiscal position on the sale order created by the connector.'
+             'The value can also be specified on shop or the shop or the '
+             'shop view.'
     )
     account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',
@@ -399,33 +451,6 @@ class ShopwareConfigSpecializer(models.AbstractModel):
             this.fiscal_position_id = (
                 this.specific_fiscal_position_id or
                 this._parent.fiscal_position_id)
-
-
-class ShopwareShop(models.Model):
-    _name = 'shopware.shop'
-    _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = 'Shopware Shop'
-    _parent_name = 'backend_id'
-
-    _order = 'sort_order ASC, id ASC'
-
-    name = fields.Char(required=True, readonly=True)
-    code = fields.Char(readonly=True)
-    sort_order = fields.Integer(string='Sort Order', readonly=True)
-    shop_ids = fields.One2many(
-        comodel_name='shopware.shop',
-        inverse_name='shop_id',
-        string='Shops',
-        readonly=True,
-    )
-    import_partners_from_date = fields.Datetime(
-        string='Import partners from date',
-    )
-    product_binding_ids = fields.Many2many(
-        comodel_name='shopware.product.product',
-        string='Shopware Products',
-        readonly=True,
-    )
 
     @api.multi
     def import_partners(self):
@@ -457,100 +482,6 @@ class ShopwareShop(models.Model):
         next_time = fields.Datetime.to_string(next_time)
         self.write({'import_partners_from_date': next_time})
         return True
-
-
-class ShopwareShop(models.Model):
-    _name = 'shopware.shop'
-    _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = 'Shopware Shop'
-    _parent_name = 'shop_id'
-
-    name = fields.Char()
-    shop_id = fields.Many2one(
-        comodel_name='shopware.shop',
-        string='Shopware Shop',
-        required=True,
-        readonly=True,
-        ondelete='cascade',
-    )
-    backend_id = fields.Many2one(
-        comodel_name='shopware.backend',
-        related='shop_id.backend_id',
-        string='Shopware Backend',
-        shop=True,
-        readonly=True,
-        # override 'shopware.binding', can't be INSERTed if True:
-        required=False,
-    )
-    shop_ids = fields.One2many(
-        comodel_name='shopware.shop',
-        inverse_name='shop_id',
-        string="Shops",
-        readonly=True,
-    )
-    send_picking_done_mail = fields.Boolean(
-        string='Send email notification on picking done',
-        help="Does the picking export/creation should send "
-             "an email notification on Shopware side?",
-    )
-    send_invoice_paid_mail = fields.Boolean(
-        string='Send email notification on invoice validated/paid',
-        help="Does the invoice export/creation should send "
-             "an email notification on Shopware side?",
-    )
-    create_invoice_on = fields.Selection(
-        selection=[('open', 'Validate'),
-                   ('paid', 'Paid')],
-        string='Create invoice on action',
-        default='paid',
-        required=True,
-        help="Should the invoice be created in Shopware "
-             "when it is validated or when it is paid in OpenERP?\n"
-             "This only takes effect if the sales order's related "
-             "payment method is not giving an option for this by "
-             "itself. (See Payment Methods)",
-    )
-
-
-class ShopwareShop(models.Model):
-    _name = 'shopware.shop'
-    _inherit = ['shopware.binding', 'shopware.config.specializer']
-    _description = "Shopware Shop"
-    _parent_name = 'shop_id'
-
-    _order = 'sort_order ASC, id ASC'
-
-    name = fields.Char(required=True, readonly=True)
-    code = fields.Char(readonly=True)
-    enabled = fields.Boolean(string='Enabled', readonly=True)
-    sort_order = fields.Integer(string='Sort Order', readonly=True)
-    shop_id = fields.Many2one(comodel_name='shopware.shop',
-                               string='Shop',
-                               ondelete='cascade',
-                               readonly=True)
-    lang_id = fields.Many2one(comodel_name='res.lang', string='Language')
-    section_id = fields.Many2one(comodel_name='crm.case.section',
-                                 string='Sales Team')
-    backend_id = fields.Many2one(
-        comodel_name='shopware.backend',
-        related='shop_id.shop_id.backend_id',
-        string='Shopware Backend',
-        shop=True,
-        readonly=True,
-        # override 'shopware.binding', can't be INSERTed if True:
-        required=False,
-    )
-    import_orders_from_date = fields.Datetime(
-        string='Import sale orders from date',
-        help='do not consider non-imported sale orders before this date. '
-             'Leave empty to import all sale orders',
-    )
-    no_sales_order_sync = fields.Boolean(
-        string='No Sales Order Synchronization',
-        help='Check if the shop is active in Shopware '
-             'but its sales orders should not be imported.',
-    )
-    catalog_price_tax_included = fields.Boolean(string='Prices include tax')
 
     @api.multi
     def import_sale_orders(self):
@@ -591,7 +522,6 @@ class ShopwareShop(models.Model):
         next_time = fields.Datetime.to_string(next_time)
         self.write({'import_orders_from_date': next_time})
         return True
-
 
 @shopware
 class ShopAdapter(GenericAdapter):
