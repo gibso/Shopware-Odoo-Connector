@@ -96,9 +96,6 @@ class ShopwareSaleOrder(models.Model):
                                         string='Parent Shopware Order')
     shop_id = fields.Many2one(comodel_name='shopware.shop',
                                    string='Shopware Shop')
-    shop_id = fields.Many2one(related='shop_id.shop_id',
-                               string='Shop',
-                               readonly=True)
 
 
 class SaleOrder(models.Model):
@@ -192,7 +189,7 @@ class ShopwareSaleOrderLine(models.Model):
         related='shopware_order_id.backend_id',
         string='Shopware Backend',
         readonly=True,
-        shop=True,
+        store=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
     )

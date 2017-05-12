@@ -19,17 +19,5 @@
         sequence="20"
         action="action_shopware_shop"/>
 
-    <menuitem id="menu_shopware_shop"
-        name="Shops"
-        parent="menu_shopware_root"
-        sequence="30"
-        action="action_shopware_shop"/>
-
-    <menuitem id="menu_shopware_shop"
-        name="Shops"
-        parent="menu_shopware_root"
-        sequence="40"
-        action="action_shopware_shop"/>
-
   </data>
 </openerp>

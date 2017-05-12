@@ -1230,7 +1230,7 @@ msgid ""
 "If specified, this analytic account will be used to fill the field  on the "
 "sale order created by the connector. The value can also be specified on "
 "shop or the shop or the shop view."
-msgstr "Wenn angegeben, wird diese Kostenstelle im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für die Webseite, den Shop oder die Shop-Sicht eingepflegt werden."
+msgstr "Wenn angegeben, wird diese Kostenstelle im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für den Shop eingepflegt werden."
 
 #. module: shopwareerpconnect
 #: help:shopware.config.specializer,specific_account_analytic_id:0
@@ -1241,7 +1241,7 @@ msgid ""
 "If specified, this analytic account will be used to fill the field on the "
 "sale order created by the connector. The value can also be specified on "
 "shop or the shop or the shop view."
-msgstr "Wenn angegeben, wird diese Kostenstelle im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für die Webseite, den Shop oder die Shop-Sicht eingepflegt werden."
+msgstr "Wenn angegeben, wird diese Kostenstelle im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für den Shop eingepflegt werden."
 
 #. module: shopwareerpconnect
 #: help:shopware.backend,fiscal_position_id:0
@@ -1253,7 +1253,7 @@ msgid ""
 "If specified, this fiscal position will be used to fill the field fiscal "
 "position on the sale order created by the connector.The value can also be "
 "specified on shop or the shop or the shop view."
-msgstr "Wenn angegeben, wird diese Steuerzuordnung im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für die Webseite, den Shop oder die Shop-Sicht eingepflegt werden."
+msgstr "Wenn angegeben, wird diese Steuerzuordnung im durch den Connector erstellten Verkaufsauftrag verwendet. Der Wert kann auch für den Shop eingepflegt werden."
 
 #. module: shopwareerpconnect
 #: help:shopware.address,lang:0 help:shopware.res.partner,lang:0
@@ -1355,7 +1355,7 @@ msgstr "Importiere im Hintergrund"
 #. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
 msgid "Import partners from all shops"
-msgstr "Importiere Partner von allen Webseiten"
+msgstr "Importiere Partner von allen Shops"
 
 #. module: shopwareerpconnect
 #: field:shopware.shop,import_partners_from_date:0
@@ -1942,12 +1942,12 @@ msgstr "Shopware-USt"
 #: view:shopware.shop:shopwareerpconnect.view_shopware_shop_form
 #: view:shopware.shop:shopwareerpconnect.view_shopware_shop_tree
 msgid "Shopware Shop"
-msgstr "Shopware-Webseite"
+msgstr "Shopware-Shop"
 
 #. module: shopwareerpconnect
 #: model:ir.actions.act_window,name:shopwareerpconnect.action_shopware_shop
 msgid "Shopware Shops"
-msgstr "Shopware-Webseiten"
+msgstr "Shopware-Shops"
 
 #. module: shopwareerpconnect
 #: code:addons/shopwareerpconnect/sale.py:1105
@@ -3713,19 +3713,19 @@ msgstr "Web-Dienst-Benutzer"
 #: field:shopware.address,shop:0 field:shopware.backend,shop_ids:0
 #: field:shopware.res.partner,shop:0
 msgid "Shop"
-msgstr "Webseite"
+msgstr "Shop"
 
 #. module: shopwareerpconnect
 #: help:shopware.address,shop:0 help:shopware.res.partner,shop:0
 msgid "Shop of Partner or Company"
-msgstr "Webseite des Partners oder Unternehmens"
+msgstr "Shop des Partners oder Unternehmens"
 
 #. module: shopwareerpconnect
 #: model:ir.ui.menu,name:shopwareerpconnect.menu_shopware_shop
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
 #: field:shopware.product.product,shop_ids:0
 msgid "Shops"
-msgstr "Webseiten"
+msgstr "Shops"
 
 #. module: shopwareerpconnect
 #: field:shopware.sale.order.line,th_weight:0

@@ -2,7 +2,7 @@
     :alt: License
 
 Shopware Connector
-=================
+==================
 
 This is the new release of the Open-Source connector linking Odoo and
 Shopware also known under the name of **Shopwareerpconnect**.  It is

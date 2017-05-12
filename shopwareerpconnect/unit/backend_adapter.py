@@ -23,7 +23,7 @@ import socket
 import logging
 import xmlrpclib
 
-import shopware as shopwarelib
+import magento as shopwarelib
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import (NetworkRetryableError,
                                                 RetryableJobError)

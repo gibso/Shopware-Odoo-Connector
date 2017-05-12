@@ -87,7 +87,7 @@ class ShopwareResPartner(models.Model):
         related='shop_id.backend_id',
         comodel_name='shopware.backend',
         string='Shopware Backend',
-        shop=True,
+        store=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
@@ -141,7 +141,7 @@ class ShopwareAddress(models.Model):
         related='shopware_partner_id.backend_id',
         comodel_name='shopware.backend',
         string='Shopware Backend',
-        shop=True,
+        store=True,
         readonly=True,
         # override 'shopware.binding', can't be INSERTed if True:
         required=False,
@@ -150,7 +150,7 @@ class ShopwareAddress(models.Model):
         related='shopware_partner_id.shop_id',
         comodel_name='shopware.shop',
         string='Shopware Shop',
-        shop=True,
+        store=True,
         readonly=True,
     )
     is_shopware_order_address = fields.Boolean(
