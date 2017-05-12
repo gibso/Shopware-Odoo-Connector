@@ -25,5 +25,5 @@ import openerp.addons.connector.backend as backend
 shopware = backend.Backend('shopware')
 """ Generic Shopware Backend """
 
-shopware1700 = backend.Backend(parent=shopware, version='1.7')
-""" Shopware Backend for version 1.7 """
+shopware5200 = backend.Backend(parent=shopware, version='5.2')
+""" Shopware Backend for version 5.2 """

@@ -57,7 +57,7 @@ class ShopwareBackend(models.Model):
         to add a version from an ``_inherit`` does not constrain
         to redefine the ``version`` field in the ``_inherit`` model.
         """
-        return [('1.7', '1.7+')]
+        return [('5.2', '5.2+')]
 
     @api.model
     def _get_stock_field_id(self):
