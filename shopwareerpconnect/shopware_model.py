@@ -531,20 +531,6 @@ class ShopAdapter(GenericAdapter):
 
 
 @shopware
-class ShopAdapter(GenericAdapter):
-    _model_name = 'shopware.shop'
-    _shopware_model = 'ol_groups'
-    _admin_path = 'system_shop/editGroup/group_id/{id}'
-
-
-@shopware
-class ShopAdapter(GenericAdapter):
-    _model_name = 'shopware.shop'
-    _shopware_model = 'ol_shops'
-    _admin_path = 'system_shop/editShop/shop_id/{id}'
-
-
-@shopware
 class MetadataBatchImporter(DirectBatchImporter):
     """ Import the records directly, without delaying the jobs.
 
@@ -554,11 +540,7 @@ class MetadataBatchImporter(DirectBatchImporter):
     and we don't really bother if it blocks the UI during this time.
     (that's also a mean to rapidly check the connectivity with Shopware).
     """
-    _model_name = [
-        'shopware.shop',
-        'shopware.shop',
-        'shopware.shop',
-    ]
+    _model_name = 'shopware.shop'
 
 
 MetadataBatchImport = MetadataBatchImporter  # deprecated
@@ -568,7 +550,9 @@ MetadataBatchImport = MetadataBatchImporter  # deprecated
 class ShopImportMapper(ImportMapper):
     _model_name = 'shopware.shop'
 
-    direct = [('code', 'code'),
+    direct = [('name', 'name'),
+              ('code', 'code'),
+              ('is_active', 'enabled'),
               ('sort_order', 'sort_order')]
 
     @mapping
@@ -584,57 +568,9 @@ class ShopImportMapper(ImportMapper):
 
 
 @shopware
-class ShopImportMapper(ImportMapper):
-    _model_name = 'shopware.shop'
-
-    direct = [('name', 'name')]
-
-    @mapping
-    def shop_id(self, record):
-        binder = self.binder_for(model='shopware.shop')
-        binding_id = binder.to_openerp(record['shop_id'])
-        return {'shop_id': binding_id}
-
-
-@shopware
-class ShopImportMapper(ImportMapper):
-    _model_name = 'shopware.shop'
-
-    direct = [
-        ('name', 'name'),
-        ('code', 'code'),
-        ('is_active', 'enabled'),
-        ('sort_order', 'sort_order'),
-    ]
-
-    @mapping
-    def shop_id(self, record):
-        binder = self.binder_for(model='shopware.shop')
-        binding_id = binder.to_openerp(record['group_id'])
-        return {'shop_id': binding_id}
-
-
-@shopware
 class ShopImporter(ShopwareImporter):
     """ Import one Shopware Shop (create a sale.shop via _inherits) """
-    _model_name = ['shopware.shop',
-                   ]
-
-    def _create(self, data):
-        binding = super(ShopImporter, self)._create(data)
-        checkpoint = self.unit_for(ShopAddCheckpoint)
-        checkpoint.run(binding.id)
-        return binding
-
-
-ShopImport = ShopImporter  # deprecated
-
-
-@shopware
-class ShopImporter(ShopwareImporter):
-    """ Import one Shopware Shop """
-    _model_name = ['shopware.shop',
-                   ]
+    _model_name = 'shopware.shop'
 
     def _create(self, data):
         binding = super(ShopImporter, self)._create(data)
@@ -651,9 +587,7 @@ class ShopAddCheckpoint(ConnectorUnit):
     """ Add a connector.checkpoint on the shopware.shop
     or shopware.shop record
     """
-    _model_name = ['shopware.shop',
-                   'shopware.shop',
-                   ]
+    _model_name = 'shopware.shop'
 
     def run(self, binding_id):
         add_checkpoint(self.session,
