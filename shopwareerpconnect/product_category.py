@@ -21,6 +21,7 @@
 
 import logging
 import xmlrpclib
+import pytz
 from openerp import models, fields
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
@@ -28,9 +29,7 @@ from openerp.addons.connector.unit.mapper import (mapping,
 from openerp.addons.connector.exception import (IDMissingInBackend,
                                                 MappingError,
                                                 )
-from .unit.backend_adapter import (GenericAdapter,
-                                   MAGENTO_DATETIME_FORMAT,
-                                   )
+from .unit.backend_adapter import GenericAdapter
 from .unit.import_synchronizer import (DelayedBatchImporter,
                                        ShopwareImporter,
                                        TranslationImporter,
@@ -51,7 +50,6 @@ class ShopwareProductCategory(models.Model):
                                  string='Product Category',
                                  required=True,
                                  ondelete='cascade')
-    description = fields.Text(translate=True)
     shopware_parent_id = fields.Many2one(
         comodel_name='shopware.product.category',
         string='Shopware Parent Category',
@@ -77,19 +75,8 @@ class ProductCategory(models.Model):
 @shopware
 class ProductCategoryAdapter(GenericAdapter):
     _model_name = 'shopware.product.category'
-    _shopware_model = 'catalog_category'
+    _shopware_model = 'categories'
     _admin_path = '/{model}/index/'
-
-    def _call(self, method, arguments):
-        try:
-            return super(ProductCategoryAdapter, self)._call(method, arguments)
-        except xmlrpclib.Fault as err:
-            # 101 is the error in the Shopware API
-            # when the category does not exist
-            if err.faultCode == 102:
-                raise IDMissingInBackend
-            else:
-                raise
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
@@ -100,43 +87,28 @@ class ProductCategoryAdapter(GenericAdapter):
         if filters is None:
             filters = {}
 
-        dt_fmt = MAGENTO_DATETIME_FORMAT
+        if self.backend_record.write_uid.tz:
+            local_tz = pytz.timezone(self.backend_record.write_uid.tz)
+            if from_date is not None:
+                from_date = from_date.replace(tzinfo=pytz.UTC).astimezone(local_tz)
+            if to_date is not None:
+                to_date = to_date.replace(tzinfo=pytz.UTC, microsecond=0).astimezone(local_tz)
+
         if from_date is not None:
-            filters.setdefault('updated_at', {})
-            # updated_at include the created records
-            filters['updated_at']['from'] = from_date.strftime(dt_fmt)
+            filters[0] = {
+                'property': 'changed',
+                'expression': '>=',
+                'value': from_date.isoformat()
+            }
         if to_date is not None:
-            filters.setdefault('updated_at', {})
-            filters['updated_at']['to'] = to_date.strftime(dt_fmt)
+            filters[1] = {
+                'property': 'changed',
+                'expression': '<=',
+                'value': to_date.isoformat()
+            }
 
-        return self._call('oerp_catalog_category.search',
-                          [filters] if filters else [{}])
-
-    def read(self, id, shop_id=None, attributes=None):
-        """ Returns the information of a record
-
-        :rtype: dict
-        """
-        return self._call('%s.info' % self._shopware_model,
-                          [int(id), shop_id, attributes])
-
-    def tree(self, parent_id=None, shop_id=None):
-        """ Returns a tree of product categories
-
-        :rtype: dict
-        """
-        def filter_ids(tree):
-            children = {}
-            if tree['children']:
-                for node in tree['children']:
-                    children.update(filter_ids(node))
-            category_id = {tree['category_id']: children}
-            return category_id
-        if parent_id:
-            parent_id = int(parent_id)
-        tree = self._call('%s.tree' % self._shopware_model,
-                          [parent_id, shop_id])
-        return filter_ids(tree)
+        return self._call('%sSearch' % self._shopware_model,
+                          {'filter': filters} if filters else {})
 
     def move(self, categ_id, parent_id, after_categ_id=None):
         return self._call('%s.move' % self._shopware_model,
@@ -185,19 +157,8 @@ class ProductCategoryBatchImporter(DelayedBatchImporter):
         else:
             updated_ids = None
 
-        base_priority = 10
-
-        def import_nodes(tree, level=0):
-            for node_id, children in tree.iteritems():
-                # By changing the priority, the top level category has
-                # more chance to be imported before the childrens.
-                # However, importers have to ensure that their parent is
-                # there and import it if it doesn't exist
-                if updated_ids is None or node_id in updated_ids:
-                    self._import_record(node_id, priority=base_priority+level)
-                import_nodes(children, level=level+1)
-        tree = self.backend_adapter.tree()
-        import_nodes(tree)
+        for record_id in updated_ids:
+            self._import_record(record_id)
 
 
 ProductCategoryBatchImport = ProductCategoryBatchImporter  # deprecated
@@ -212,8 +173,8 @@ class ProductCategoryImporter(ShopwareImporter):
         record = self.shopware_record
         # import parent category
         # the root category has a 0 parent_id
-        if record.get('parent_id'):
-            parent_id = record['parent_id']
+        if record.get('parentId'):
+            parent_id = record['parentId']
             if self.binder.to_openerp(parent_id) is None:
                 importer = self.unit_for(ShopwareImporter)
                 importer.run(parent_id)
@@ -238,19 +199,12 @@ class ProductCategoryImportMapper(ImportMapper):
     _model_name = 'shopware.product.category'
 
     direct = [
-        ('description', 'description'),
+        ('name', 'name')
     ]
 
     @mapping
-    def name(self, record):
-        if record['level'] == '0':  # top level category; has no name
-            return {'name': self.backend_record.name}
-        if record['name']:  # may be empty in shops
-            return {'name': record['name']}
-
-    @mapping
     def shopware_id(self, record):
-        return {'shopware_id': record['category_id']}
+        return {'shopware_id': record['id']}
 
     @mapping
     def backend_id(self, record):
@@ -258,14 +212,14 @@ class ProductCategoryImportMapper(ImportMapper):
 
     @mapping
     def parent_id(self, record):
-        if not record.get('parent_id'):
+        if not record.get('parentId'):
             return
         binder = self.binder_for()
-        category_id = binder.to_openerp(record['parent_id'], unwrap=True)
-        mag_cat_id = binder.to_openerp(record['parent_id'])
+        category_id = binder.to_openerp(record['parentId'], unwrap=True)
+        sw_cat_id = binder.to_openerp(record['parentId'])
 
         if category_id is None:
             raise MappingError("The product category with "
                                "shopware id %s is not imported." %
-                               record['parent_id'])
-        return {'parent_id': category_id, 'shopware_parent_id': mag_cat_id}
+                               record['parentId'])
+        return {'parent_id': category_id, 'shopware_parent_id': sw_cat_id}
