@@ -174,7 +174,7 @@ class GenericAdapter(ShopwareCRUDAdapter):
 
         :rtype: list
         """
-        return self._call('%s.search' % self._shopware_model,
+        return self._call('%sSearch' % self._shopware_model,
                           filters if filters else {})
 
     def read(self, id, attributes=None):
@@ -182,19 +182,8 @@ class GenericAdapter(ShopwareCRUDAdapter):
 
         :rtype: dict
         """
-        arguments = [int(id)]
-        if attributes:
-            # Avoid to pass Null values in attributes. Workaround for
-            # https://bugs.launchpad.net/openerp-connector-shopware/+bug/1210775
-            # When Shopware is installed on PHP 5.4 and the compatibility patch
-            # http://shopware.com/blog/shopware-news/shopware-now-supports-php-54
-            # is not installed, calling info() with None in attributes
-            # would return a wrong result (almost empty list of
-            # attributes). The right correction is to install the
-            # compatibility patch on Shopware.
-            arguments.append(attributes)
-        return self._call('%s.info' % self._shopware_model,
-                          arguments)
+        return self._call('%s' % self._shopware_model + '/' + str(id),
+                          {'attributes' : attributes})
 
     def search_read(self, filters=None):
         """ Search records according to some criterias

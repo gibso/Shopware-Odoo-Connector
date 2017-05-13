@@ -504,7 +504,7 @@ class ShopwareShop(models.Model):
 @shopware
 class ShopAdapter(GenericAdapter):
     _model_name = 'shopware.shop'
-    _shopware_model = 'ol_shops'
+    _shopware_model = 'shops'
     _admin_path = 'system_shop/editShop/shop_id/{id}'
 
 
@@ -543,21 +543,6 @@ class ShopImportMapper(ImportMapper):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
-
-
-@shopware
-class ShopImporter(ShopwareImporter):
-    """ Import one Shopware Shop (create a sale.shop via _inherits) """
-    _model_name = 'shopware.shop'
-
-    def _create(self, data):
-        binding = super(ShopImporter, self)._create(data)
-        checkpoint = self.unit_for(ShopAddCheckpoint)
-        checkpoint.run(binding.id)
-        return binding
-
-
-ShopImport = ShopImporter  # deprecated
 
 
 @shopware
