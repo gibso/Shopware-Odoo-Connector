@@ -339,7 +339,6 @@ class ShopwareShop(models.Model):
     _order = 'sort_order ASC, id ASC'
 
     name = fields.Char(required=True, readonly=True)
-    code = fields.Char(readonly=True)
     enabled = fields.Boolean(string='Enabled', readonly=True)
     sort_order = fields.Integer(string='Sort Order', readonly=True)
     lang_id = fields.Many2one(comodel_name='res.lang', string='Language')
@@ -529,9 +528,8 @@ class ShopImportMapper(ImportMapper):
     _model_name = 'shopware.shop'
 
     direct = [('name', 'name'),
-              ('code', 'code'),
-              ('is_active', 'enabled'),
-              ('sort_order', 'sort_order')]
+              ('active', 'enabled'),
+              ('position', 'sort_order')]
 
     @mapping
     def name(self, record):

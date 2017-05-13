@@ -168,7 +168,6 @@
                         <group string="Informations">
                             <field name="shopware_id" invisible="1"/>
                             <field name="backend_id" readonly="1"/>
-                            <field name="code"/>
                             <field name="sort_order"/>
                             <field name="enabled"/>
                             <field name="no_sales_order_sync"/>
@@ -236,7 +235,6 @@
                         delete="false">
                     <field name="name"/>
                     <field name="backend_id"/>
-                    <field name="code"/>
                     <field name="sort_order"/>
                     <field name="enabled"/>
                     <field name="no_sales_order_sync"/>
