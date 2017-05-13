@@ -330,12 +330,6 @@ class CatalogImageImporter(Importer):
         url = image_data['url'].encode('utf8')
         try:
             request = urllib2.Request(url)
-            if self.backend_record.auth_basic_username \
-                    and self.backend_record.auth_basic_password:
-                base64string = base64.b64encode(
-                    '%s:%s' % (self.backend_record.auth_basic_username,
-                               self.backend_record.auth_basic_password))
-                request.add_header("Authorization", "Basic %s" % base64string)
             binary = urllib2.urlopen(request)
         except urllib2.HTTPError as err:
             if err.code == 404:

@@ -31,7 +31,7 @@
              'product_m2mcategories',
              ],
  'external_dependencies': {
-     'python': ['magento'],
+     'python': ['shopware_rest'],
  },
  'demo': [],
  'data': ['setting_view.xml',

@@ -73,35 +73,13 @@ class ShopwareBackend(models.Model):
         required=True,
         help="Url to shopware application",
     )
-    admin_location = fields.Char(string='Admin Location')
-    use_custom_api_path = fields.Boolean(
-        string='Custom Api Path',
-        help="The default API path is '/index.php/api/xmlrpc'. "
-             "Check this box if you use a custom API path, in that case, "
-             "the location has to be completed with the custom API path ",
-    )
     username = fields.Char(
         string='Username',
         help="Webservice user",
     )
-    password = fields.Char(
-        string='Password',
-        help="Webservice password",
-    )
-    use_auth_basic = fields.Boolean(
-        string='Use HTTP Auth Basic',
-        help="Use a Basic Access Authentication for the API. "
-             "The Shopware server could be configured to restrict access "
-             "using a HTTP authentication based on a username and "
-             "a password.",
-    )
-    auth_basic_username = fields.Char(
-        string='Basic Auth. Username',
-        help="Basic access authentication web server side username",
-    )
-    auth_basic_password = fields.Char(
-        string='Basic Auth. Password',
-        help="Basic access authentication web server side password",
+    token = fields.Char(
+        string='API key',
+        help="Webservice API key",
     )
     sale_prefix = fields.Char(
         string='Sale Prefix',

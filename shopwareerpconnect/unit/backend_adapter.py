@@ -22,8 +22,8 @@
 import socket
 import logging
 import xmlrpclib
+from shopware_rest import rest as shopwarelib
 
-import magento as shopwarelib
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import (NetworkRetryableError,
                                                 RetryableJobError)
@@ -78,26 +78,14 @@ def output_recorder(filename):
 
 class ShopwareLocation(object):
 
-    def __init__(self, location, username, password,
-                 use_custom_api_path=False):
-        self._location = location
+    def __init__(self, location, username, token):
+        self._location = location + 'api/'
         self.username = username
-        self.password = password
-        self.use_custom_api_path = use_custom_api_path
-
-        self.use_auth_basic = False
-        self.auth_basic_username = None
-        self.auth_basic_password = None
+        self.token = token
 
     @property
     def location(self):
         location = self._location
-        if not self.use_auth_basic:
-            return location
-        assert self.auth_basic_username and self.auth_basic_password
-        replacement = "%s:%s@" % (self.auth_basic_username,
-                                  self.auth_basic_password)
-        location = location.replace('://', '://' + replacement)
         return location
 
 
@@ -115,12 +103,7 @@ class ShopwareCRUDAdapter(CRUDAdapter):
         shopware = ShopwareLocation(
             backend.location,
             backend.username,
-            backend.password,
-            use_custom_api_path=backend.use_custom_api_path)
-        if backend.use_auth_basic:
-            shopware.use_auth_basic = True
-            shopware.auth_basic_username = backend.auth_basic_username
-            shopware.auth_basic_password = backend.auth_basic_password
+            backend.token)
         self.shopware = shopware
 
     def search(self, filters=None):
@@ -149,33 +132,17 @@ class ShopwareCRUDAdapter(CRUDAdapter):
         """ Delete a record on the external system """
         raise NotImplementedError
 
-    def _call(self, method, arguments):
+    def _call(self, resource, arguments, method='GET'):
         try:
-            custom_url = self.shopware.use_custom_api_path
             _logger.debug("Start calling Shopware api %s", method)
-            with shopwarelib.API(self.shopware.location,
-                                self.shopware.username,
-                                self.shopware.password,
-                                full_url=custom_url) as api:
-                # When Shopware is installed on PHP 5.4+, the API
-                # may return garble data if the arguments contain
-                # trailing None.
-                if isinstance(arguments, list):
-                    while arguments and arguments[-1] is None:
-                        arguments.pop()
-                start = datetime.now()
-                try:
-                    result = api.call(method, arguments)
-                except:
-                    _logger.error("api.call(%s, %s) failed", method, arguments)
-                    raise
-                else:
-                    _logger.debug("api.call(%s, %s) returned %s in %s seconds",
-                                  method, arguments, result,
-                                  (datetime.now() - start).seconds)
-                # Uncomment to record requests/responses in ``recorder``
-                # record(method, arguments, result)
-                return result
+            client = shopwarelib.sapi()
+            client.setCredentials(self.shopware.username,
+                                  self.shopware.token,
+                                  self.shopware.location)
+
+            result = client.call(resource, method, arguments, arguments)
+
+            return result
         except (socket.gaierror, socket.error, socket.timeout) as err:
             raise NetworkRetryableError(
                 'A network error caused the failure of the job: '
@@ -208,7 +175,7 @@ class GenericAdapter(ShopwareCRUDAdapter):
         :rtype: list
         """
         return self._call('%s.search' % self._shopware_model,
-                          [filters] if filters else [{}])
+                          filters if filters else {})
 
     def read(self, id, attributes=None):
         """ Returns the information of a record
@@ -246,18 +213,3 @@ class GenericAdapter(ShopwareCRUDAdapter):
     def delete(self, id):
         """ Delete a record on the external system """
         return self._call('%s.delete' % self._shopware_model, [int(id)])
-
-    def admin_url(self, id):
-        """ Return the URL in the Shopware admin for a record """
-        if self._admin_path is None:
-            raise ValueError('No admin path is defined for this record')
-        backend = self.backend_record
-        url = backend.admin_location
-        if not url:
-            raise ValueError('No admin URL configured on the backend.')
-        path = self._admin_path.format(model=self._shopware_model,
-                                       id=id)
-        url = url.rstrip('/')
-        path = path.lstrip('/')
-        url = '/'.join((url, path))
-        return url

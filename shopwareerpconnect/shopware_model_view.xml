@@ -25,19 +25,8 @@
                                         <field name="version" colspan="4"/>
                                         <field name="location" placeholder="e.g. http://my.shopware.com"
                                             colspan="2"/>
-                                        <field name="use_custom_api_path" colspan="2"/>
                                         <field name="username" colspan="2"/>
-                                        <field name="password" password="1" colspan="2"/>
-                                    </group>
-                                </page>
-                                <page string="HTTP Authentication" name="auth" colspan="4" col="4">
-                                    <group colspan="4" col="4">
-                                        <field name="use_auth_basic" colspan="4"/>
-                                        <field name="auth_basic_username" colspan="2"
-                                              attrs="{'invisible': [('use_auth_basic', '=', False)], 'required': [('use_auth_basic', '=', True)]}"/>
-                                        <field name="auth_basic_password" colspan="2"
-                                              password="1"
-                                              attrs="{'invisible': [('use_auth_basic', '=', False)], 'required': [('use_auth_basic', '=', True)]}"/>
+                                        <field name="token" password="1" colspan="2"/>
                                     </group>
                                 </page>
                             </notebook>
@@ -124,7 +113,6 @@
 
                             <page name="advanced_configuration" string="Advanced Configuration">
                                 <group>
-                                    <field name="admin_location" placeholder="e.g. http://my.shopware.com/admin"/>
                                     <field name="default_lang_id" widget="selection"/>
                                     <field name="default_category_id"/>
                                     <field name="sale_prefix" placeholder="mag-" />

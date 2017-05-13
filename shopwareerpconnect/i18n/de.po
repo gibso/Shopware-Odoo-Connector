@@ -236,11 +236,6 @@ msgid "Address from a Shopware Order"
 msgstr "Adresse von einer Shopware Bestellung"
 
 #. module: shopwareerpconnect
-#: field:shopware.backend,admin_location:0
-msgid "Admin Location"
-msgstr "Admin-Ort"
-
-#. module: shopwareerpconnect
 #: view:shopware.backend:shopwareerpconnect.view_shopware_backend_form
 msgid "Advanced Configuration"
 msgstr "Erweiterte Einstellungen"
@@ -339,26 +334,6 @@ msgid ""
 "Base price to compute the customer price. Sometimes called the catalog "
 "price."
 msgstr "Basispreis, um den Kundenpreis zu ermitteln. Manchmal auch Katalogpreis genannt."
-
-#. module: shopwareerpconnect
-#: field:shopware.backend,auth_basic_password:0
-msgid "Basic Auth. Password"
-msgstr "Einfaches Auth.-Passwort"
-
-#. module: shopwareerpconnect
-#: field:shopware.backend,auth_basic_username:0
-msgid "Basic Auth. Username"
-msgstr "Einfacher Auth.-Benutzername"
-
-#. module: shopwareerpconnect
-#: help:shopware.backend,auth_basic_password:0
-msgid "Basic access authentication web server side password"
-msgstr "Einfache Zugriffs-Authentifizierung, Web-Server-seitiges Passwort"
-
-#. module: shopwareerpconnect
-#: help:shopware.backend,auth_basic_username:0
-msgid "Basic access authentication web server side username"
-msgstr "Einfache Zugriffs-Authentifizierung, Web-Server-seitiger Benutzername"
 
 #. module: shopwareerpconnect
 #: field:shopware.product.product,image:0
@@ -727,10 +702,6 @@ msgid ""
 "Otherwise, this includes goods shopd in any Stock Location with 'internal' type."
 msgstr "Aktuelle Produktmenge.\nIm Zusammenhang mit einem einzelnen Lagerplatz ist dies die Menge an diesem Platz oder diesem untergeordneten Plätzen.\nIm Zusammenhang mit einem einzelnen Lager ist dies die Menge an allen Plätzen dieses Lagers und deren untergeordneten Plätzen.\nIm Zusammenhang mit einem Ladenlager ist dies die Menge aller in Lagern dieses Ladens und deren Teillager.\nAnderenfalls ist dies die Summe aller Bestände auf 'internen' Lagern."
 
-#. module: shopwareerpconnect
-#: field:shopware.backend,use_custom_api_path:0
-msgid "Custom Api Path"
-msgstr "Angepasster API-Pfad"
 
 #. module: shopwareerpconnect
 #: field:shopware.address,customer:0 field:shopware.res.partner,customer:0
@@ -2263,9 +2234,9 @@ msgid "Partners"
 msgstr "Partner"
 
 #. module: shopwareerpconnect
-#: field:shopware.backend,password:0
-msgid "Password"
-msgstr "Passwort"
+#: field:shopware.backend,token:0
+msgid "API key"
+msgstr "API-Schlüssel"
 
 #. module: shopwareerpconnect
 #: field:shopware.address,debit_limit:0 field:shopware.res.partner,debit_limit:0
