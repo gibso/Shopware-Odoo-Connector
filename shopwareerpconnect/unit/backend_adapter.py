@@ -139,7 +139,6 @@ class ShopwareCRUDAdapter(CRUDAdapter):
             client.setCredentials(self.shopware.username,
                                   self.shopware.token,
                                   self.shopware.location)
-
             result = client.call(resource, method, arguments, arguments)
 
             return result
