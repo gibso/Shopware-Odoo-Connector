@@ -97,18 +97,6 @@ class ShopwareProductProduct(models.Model):
     _inherits = {'product.product': 'openerp_id'}
     _description = 'Shopware Product'
 
-    @api.model
-    def product_type_get(self):
-        return [
-            ('simple', 'Simple Product'),
-            ('configurable', 'Configurable Product'),
-            ('virtual', 'Virtual Product'),
-            ('downloadable', 'Downloadable Product'),
-            # XXX activate when supported
-            # ('grouped', 'Grouped Product'),
-            # ('bundle', 'Bundle Product'),
-        ]
-
     openerp_id = fields.Many2one(comodel_name='product.product',
                                  string='Product',
                                  required=True,
@@ -123,12 +111,7 @@ class ShopwareProductProduct(models.Model):
     shop_ids = fields.Many2many(comodel_name='shopware.shop',
                                    string='Shops',
                                    readonly=True)
-    created_at = fields.Date('Created At (on Shopware)')
-    updated_at = fields.Date('Updated At (on Shopware)')
-    product_type = fields.Selection(selection='product_type_get',
-                                    string='Shopware Product Type',
-                                    default='simple',
-                                    required=True)
+    changed = fields.Date('Changed (on Shopware)')
     manage_stock = fields.Selection(
         selection=[('use_default', 'Use Default Config'),
                    ('no', 'Do Not Manage Stock'),
@@ -277,19 +260,8 @@ class ArticleAdapter(GenericAdapter):
 @shopware
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'shopware.product.product'
-    _shopware_model = 'catalog_product'
+    _shopware_model = 'variants'
     _admin_path = '/{model}/edit/id/{id}'
-
-    def _call(self, method, arguments):
-        try:
-            return super(ProductProductAdapter, self)._call(method, arguments)
-        except xmlrpclib.Fault as err:
-            # this is the error in the Shopware API
-            # when the product does not exist
-            if err.faultCode == 101:
-                raise IDMissingInBackend
-            else:
-                raise
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria
@@ -310,14 +282,6 @@ class ProductProductAdapter(GenericAdapter):
         return [int(row['product_id']) for row
                 in self._call('%s.list' % self._shopware_model,
                               [filters] if filters else [{}])]
-
-    def read(self, id, shop_id=None, attributes=None):
-        """ Returns the information of a record
-
-        :rtype: dict
-        """
-        return self._call('ol_catalog_product.info',
-                          [int(id), shop_id, attributes, 'id'])
 
     def write(self, id, data, shop_id=None):
         """ Update records on the external system """
@@ -355,31 +319,6 @@ class ArticleBatchImporter(DelayedBatchImporter):
                      filters, record_ids)
         for record_id in record_ids:
             self._import_record(record_id)
-
-
-@shopware
-class ProductBatchImporter(DelayedBatchImporter):
-    """ Import the Shopware Products.
-
-    For every product category in the list, a delayed job is created.
-    Import from a date
-    """
-    _model_name = ['shopware.product.product']
-
-    def run(self, filters=None):
-        """ Run the synchronization """
-        from_date = filters.pop('from_date', None)
-        to_date = filters.pop('to_date', None)
-        record_ids = self.backend_adapter.search(filters,
-                                                 from_date=from_date,
-                                                 to_date=to_date)
-        _logger.info('search for shopware products %s returned %s',
-                     filters, record_ids)
-        for record_id in record_ids:
-            self._import_record(record_id)
-
-
-ProductBatchImport = ProductBatchImporter  # deprecated
 
 
 @shopware
@@ -518,7 +457,8 @@ class ArticleImportMapper(ImportMapper):
               ('description', 'description'),
               ('descriptionLong', 'description_long'),
               ('active', 'active'),
-              ('id', 'shopware_id')]
+              ('id', 'shopware_id'),
+              (normalize_datetime('changed'), 'changed')]
 
 
     @mapping
@@ -559,88 +499,57 @@ class ArticleImportMapper(ImportMapper):
 @shopware
 class ProductImportMapper(ImportMapper):
     _model_name = 'shopware.product.product'
-    # TODO :     categ, special_price => minimal_price
-    direct = [('name', 'name'),
-              ('description', 'description'),
-              ('weight', 'weight'),
-              ('cost', 'standard_price'),
-              ('short_description', 'description_sale'),
-              ('sku', 'default_code'),
-              ('type_id', 'product_type'),
-              (normalize_datetime('created_at'), 'created_at'),
-              (normalize_datetime('updated_at'), 'updated_at'),
-              ]
 
-    @mapping
-    def is_active(self, record):
-        mapper = self.unit_for(IsActiveProductImportMapper)
-        return mapper.map_record(record).values(**self.options)
+    direct = [('number', 'default_code'),
+              ('additionalText', 'description_sale'),
+              ('active', 'active'),
+              ('ean', 'ean13'),
+              ('weight', 'weight'),
+              ('articleId', 'shopware_article_id')]
 
     @mapping
     def price(self, record):
-        mapper = self.unit_for(PriceProductImportMapper)
-        return mapper.map_record(record).values(**self.options)
+        # only import the EK price, because this one always exists
+        prices = record['prices']
+
+        for price in prices:
+            if price['from'] == 1 and price['customerGroup']['key'] == 'EK':
+                return {'list_price': price['price']}
+
+        raise MappingError("Could not store the price for the article detail with shopware id %s"
+                           % record['id'])
 
     @mapping
-    def type(self, record):
-        if record['type_id'] == 'simple':
-            return {'type': 'product'}
-        elif record['type_id'] in ('virtual', 'downloadable'):
-            return {'type': 'service'}
-        return
+    def shopware_article(self, record):
 
-    @mapping
-    def shop_ids(self, record):
-        shop_ids = []
-        binder = self.binder_for('shopware.shop')
-        for mag_shop_id in record['shops']:
-            shop_id = binder.to_openerp(mag_shop_id)
-            shop_ids.append((4, shop_id))
-        return {'shop_ids': shop_ids}
-
-    @mapping
-    def categories(self, record):
-        mag_categories = record['categories']
-        binder = self.binder_for('shopware.product.category')
+        article = self.env['shopware.article'].search(
+            [('shopware_id', '=', record['articleId'])]
+        )
+        if article is None:
+            raise MappingError("The shopware article with "
+                               "shopware id %s does not exist" %
+                               record['articleId'])
 
         category_ids = []
-        main_categ_id = None
+        for category in article.categ_ids:
+            category_ids.append(category.id)
 
-        for mag_category_id in mag_categories:
-            cat_id = binder.to_openerp(mag_category_id, unwrap=True)
-            if cat_id is None:
-                raise MappingError("The product category with "
-                                   "shopware id %s is not imported." %
-                                   mag_category_id)
-
-            category_ids.append(cat_id)
-
-        if category_ids:
-            main_categ_id = category_ids.pop(0)
-
-        if main_categ_id is None:
-            default_categ = self.backend_record.default_category_id
-            if default_categ:
-                main_categ_id = default_categ.id
-
-        result = {'categ_ids': [(6, 0, category_ids)]}
-        if main_categ_id:  # OpenERP assign 'All Products' if not specified
-            result['categ_id'] = main_categ_id
-        return result
+        return {
+            'name': article.name,
+            'description': article.description_long,
+            'shopware_article_id': article.id,
+            'categ_ids': [(6, 0, category_ids)],
+            'categ_id': article.categ_id.id,
+            'changed': article.changed
+        }
 
     @mapping
     def shopware_id(self, record):
-        return {'shopware_id': record['product_id']}
+        return {'shopware_id': record['id']}
 
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
-
-    @mapping
-    def bundle_mapping(self, record):
-        if record['type_id'] == 'bundle':
-            bundle_mapper = self.unit_for(BundleProductImportMapper)
-            return bundle_mapper.map_record(record).values(**self.options)
 
 
 @shopware
@@ -677,81 +586,17 @@ class ProductImporter(ShopwareImporter):
 
     _base_mapper = ProductImportMapper
 
-    def _import_bundle_dependencies(self):
-        """ Import the dependencies for a Bundle """
-        bundle = self.shopware_record['_bundle_data']
-        for option in bundle['options']:
-            for selection in option['selections']:
-                self._import_dependency(selection['product_id'],
-                                        'shopware.product.product')
-
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
         record = self.shopware_record
-        # import related categories
-        for mag_category_id in record['categories']:
-            self._import_dependency(mag_category_id,
-                                    'shopware.product.category')
-        if record['type_id'] == 'bundle':
-            self._import_bundle_dependencies()
-
-    def _validate_product_type(self, data):
-        """ Check if the product type is in the selection (so we can
-        prevent the `except_orm` and display a better error message).
-        """
-        product_type = data['product_type']
-        product_model = self.env['shopware.product.product']
-        types = product_model.product_type_get()
-        available_types = [typ[0] for typ in types]
-        if product_type not in available_types:
-            raise InvalidDataError("The product type '%s' is not "
-                                   "yet supported in the connector." %
-                                   product_type)
-
-    def _must_skip(self):
-        """ Hook called right after we read the data from the backend.
-
-        If the method returns a message giving a reason for the
-        skipping, the import will be interrupted and the message
-        recorded in the job (if the import is called directly by the
-        job, not by dependencies).
-
-        If it returns None, the import will continue normally.
-
-        :returns: None | str | unicode
-        """
-        if self.shopware_record['type_id'] == 'configurable':
-            return _('The configurable product is not imported in OpenERP, '
-                     'because only the simple products are used in the sales '
-                     'orders.')
-
-    def _validate_data(self, data):
-        """ Check if the values to import are correct
-
-        Pro-actively check before the ``_create`` or
-        ``_update`` if some fields are missing or invalid
-
-        Raise `InvalidDataError`
-        """
-        self._validate_product_type(data)
+        # import related article
+        self._import_dependency(record['articleId'], 'shopware.article')
 
     def _create(self, data):
         openerp_binding = super(ProductImporter, self)._create(data)
         checkpoint = self.unit_for(AddCheckpoint)
         checkpoint.run(openerp_binding.id)
         return openerp_binding
-
-    def _after_import(self, binding):
-        """ Hook called at the end of the import """
-        translation_importer = self.unit_for(TranslationImporter)
-        translation_importer.run(self.shopware_id, binding.id,
-                                 mapper_class=ProductImportMapper)
-        image_importer = self.unit_for(CatalogImageImporter)
-        image_importer.run(self.shopware_id, binding.id)
-
-        if self.shopware_record['type_id'] == 'bundle':
-            bundle_importer = self.unit_for(BundleImporter)
-            bundle_importer.run(binding.id, self.shopware_record)
 
 
 ProductImport = ProductImporter  # deprecated
