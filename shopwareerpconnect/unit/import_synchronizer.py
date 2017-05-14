@@ -68,7 +68,7 @@ class ShopwareImporter(Importer):
         """Return True if the import should be skipped because
         it is already up-to-date in OpenERP"""
         assert self.shopware_record
-        if not self.shopware_record.get('updated_at'):
+        if not self.shopware_record.get('changed'):
             return  # no update date on Shopware, always import it.
         if not binding:
             return  # it does not exist so it should not be skipped
@@ -77,7 +77,7 @@ class ShopwareImporter(Importer):
             return
         from_string = fields.Datetime.from_string
         sync_date = from_string(sync)
-        shopware_date = from_string(self.shopware_record['updated_at'])
+        shopware_date = from_string(self.shopware_record['changed'])
         # if the last synchronization date is greater than the last
         # update in shopware, we skip the import.
         # Important: at the beginning of the exporters flows, we have to
