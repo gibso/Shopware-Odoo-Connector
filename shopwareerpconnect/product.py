@@ -298,10 +298,7 @@ class ProductProductAdapter(GenericAdapter):
                           [int(id), image_name, shop_id, 'id'])
 
     def update_inventory(self, id, data):
-        # product_stock.update is too slow
-        return self._call('oerp_cataloginventory_stock_item.update',
-                          [int(id), data])
-
+        return self._call('%s/%d' % (self._shopware_model, int(id)), data, 'PUT')
 
 @shopware
 class ArticleBatchImporter(DelayedBatchImporter):
@@ -642,9 +639,7 @@ class ProductInventoryExporter(Exporter):
         result = {}
         if 'shopware_qty' in fields:
             result.update({
-                'qty': product.shopware_qty,
-                # put the stock availability to "out of stock"
-                'is_in_stock': int(product.shopware_qty > 0)
+                'inStock': product.shopware_qty
             })
         if 'manage_stock' in fields:
             manage = product.manage_stock
