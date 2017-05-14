@@ -261,8 +261,8 @@ class ShopwareBackend(models.Model):
         return True
 
     @api.multi
-    def import_product_product(self):
-        self._import_from_date('shopware.product.product',
+    def import_articles(self):
+        self._import_from_date('shopware.article',
                                'import_products_from_date')
         return True
 
@@ -329,6 +329,7 @@ class ShopwareBackend(models.Model):
         path = os.path.join(tempfile.gettempdir(), filename)
         output_recorder(path)
         return path
+
 
 class ShopwareShop(models.Model):
     _name = 'shopware.shop'
@@ -499,6 +500,7 @@ class ShopwareShop(models.Model):
         next_time = fields.Datetime.to_string(next_time)
         self.write({'import_orders_from_date': next_time})
         return True
+
 
 @shopware
 class ShopAdapter(GenericAdapter):

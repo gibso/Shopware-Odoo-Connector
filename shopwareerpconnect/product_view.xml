@@ -28,7 +28,7 @@
                     <group>
                         <field name="backend_id"/>
                         <field name="shopware_id"/>
-                        <field name="description"/>
+                        <field name="name"/>
                         <field name="shopware_parent_id"/>
                         <field name="shopware_child_ids"/>
                     </group>

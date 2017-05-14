@@ -41,12 +41,11 @@ class ShopwareModelBinder(ShopwareBinder):
     """
     _model_name = [
         'shopware.shop',
-        'shopware.shop',
-        'shopware.shop',
         'shopware.res.partner',
         'shopware.address',
         'shopware.res.partner.category',
         'shopware.product.category',
+        'shopware.article',
         'shopware.product.product',
         'shopware.stock.picking',
         'shopware.sale.order',

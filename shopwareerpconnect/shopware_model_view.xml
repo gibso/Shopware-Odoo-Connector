@@ -89,7 +89,7 @@
                                             class="oe_inline"
                                             nolabel="1"/>
                                     </div>
-                                    <button name="import_product_product"
+                                    <button name="import_articles"
                                         type="object"
                                         class="oe_highlight"
                                         string="Import in background"/>

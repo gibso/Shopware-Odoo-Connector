@@ -25,6 +25,7 @@ import urllib2
 import base64
 import xmlrpclib
 import sys
+import pytz
 from collections import defaultdict
 from openerp import models, fields, api, _
 from openerp.addons.connector.queue.job import job, related_action
@@ -47,6 +48,7 @@ from .unit.import_synchronizer import (DelayedBatchImporter,
                                        ShopwareImporter,
                                        TranslationImporter,
                                        AddCheckpoint,
+                                       import_record
                                        )
 from .connector import get_environment
 from .backend import shopware
@@ -58,6 +60,35 @@ _logger = logging.getLogger(__name__)
 def chunks(items, length):
     for index in xrange(0, len(items), length):
         yield items[index:index + length]
+
+
+class ShopwareArticle(models.Model):
+    _name = 'shopware.article'
+    _inherit = 'shopware.binding'
+    _description = 'Shopware Article'
+
+    shopware_product_ids = fields.One2many(
+        comodel_name='shopware.product.product',
+        inverse_name='shopware_article_id',
+        string='Shopware Products'
+    )
+    changed = fields.Date('Changed (on Shopware)')
+    name = fields.Char(string='Article Name', required=True)
+    description = fields.Char(string='Article Description')
+    description_long = fields.Char(string='Article Description Long')
+    active = fields.Boolean()
+    categ_id = fields.Many2one(
+        'product.category',
+        required=True,
+        change_default=True,
+        domain="[('type','=','normal')]"
+    )
+    categ_ids = fields.Many2many(
+        'product.category',
+        required=True,
+        change_default=True,
+        domain="[('type','=','normal')]"
+    )
 
 
 class ShopwareProductProduct(models.Model):
@@ -82,6 +113,12 @@ class ShopwareProductProduct(models.Model):
                                  string='Product',
                                  required=True,
                                  ondelete='restrict')
+    shopware_article_id = fields.Many2one(
+        comodel_name='shopware.article',
+        string='Shopware Article',
+        required=True,
+        ondelete='cascade'
+    )
     # XXX shop_ids can be computed from categories
     shop_ids = fields.Many2many(comodel_name='shopware.shop',
                                    string='Shops',
@@ -200,6 +237,44 @@ class ProductProduct(models.Model):
 
 
 @shopware
+class ArticleAdapter(GenericAdapter):
+    _model_name = 'shopware.article'
+    _shopware_model = 'articles'
+
+    def search(self, filters=None, from_date=None, to_date=None):
+        """ Search records according to some criteria and return a
+        list of ids
+
+        :rtype: list
+        """
+        if filters is None:
+            filters = {}
+
+        if self.backend_record.write_uid.tz:
+            local_tz = pytz.timezone(self.backend_record.write_uid.tz)
+            if from_date is not None:
+                from_date = from_date.replace(tzinfo=pytz.UTC).astimezone(local_tz)
+            if to_date is not None:
+                to_date = to_date.replace(tzinfo=pytz.UTC, microsecond=0).astimezone(local_tz)
+
+        if from_date is not None:
+            filters[0] = {
+                'property': 'changed',
+                'expression': '>=',
+                'value': from_date.isoformat()
+            }
+        if to_date is not None:
+            filters[1] = {
+                'property': 'changed',
+                'expression': '<=',
+                'value': to_date.isoformat()
+            }
+
+        return self._call('%sSearch' % self._shopware_model,
+                          {'filter': filters} if filters else {})
+
+
+@shopware
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'shopware.product.product'
     _shopware_model = 'catalog_product'
@@ -262,6 +337,24 @@ class ProductProductAdapter(GenericAdapter):
         # product_stock.update is too slow
         return self._call('oerp_cataloginventory_stock_item.update',
                           [int(id), data])
+
+
+@shopware
+class ArticleBatchImporter(DelayedBatchImporter):
+    """ Import the Shopware Articles.  """
+    _model_name = ['shopware.article']
+
+    def run(self, filters=None):
+        """ Run the synchronization """
+        from_date = filters.pop('from_date', None)
+        to_date = filters.pop('to_date', None)
+        record_ids = self.backend_adapter.search(filters,
+                                                 from_date=from_date,
+                                                 to_date=to_date)
+        _logger.info('search for shopware products %s returned %s',
+                     filters, record_ids)
+        for record_id in record_ids:
+            self._import_record(record_id)
 
 
 @shopware
@@ -418,6 +511,52 @@ class BundleImporter(Importer):
 
 
 @shopware
+class ArticleImportMapper(ImportMapper):
+    _model_name = 'shopware.article'
+
+    direct = [('name', 'name'),
+              ('description', 'description'),
+              ('descriptionLong', 'description_long'),
+              ('active', 'active'),
+              ('id', 'shopware_id')]
+
+
+    @mapping
+    def backend_id(self, record):
+        return {'backend_id': self.backend_record.id}
+
+    @mapping
+    def categories(self, record):
+        sw_categories = record['categories']
+        binder = self.binder_for('shopware.product.category')
+
+        category_ids = []
+        main_categ_id = None
+
+        for sw_category in sw_categories:
+            cat_id = binder.to_openerp(sw_category['id'], unwrap=True)
+            if cat_id is None:
+                raise MappingError("The product category with "
+                                   "shopware id %s is not imported." %
+                                   sw_category['id'])
+
+            category_ids.append(cat_id)
+
+        if category_ids:
+            main_categ_id = category_ids.pop(0)
+
+        if main_categ_id is None:
+            default_categ = self.backend_record.default_category_id
+            if default_categ:
+                main_categ_id = default_categ.id
+
+        result = {'categ_ids': [(6, 0, category_ids)]}
+        if main_categ_id:  # OpenERP assign 'All Products' if not specified
+            result['categ_id'] = main_categ_id
+        return result
+
+
+@shopware
 class ProductImportMapper(ImportMapper):
     _model_name = 'shopware.product.product'
     # TODO :     categ, special_price => minimal_price
@@ -502,6 +641,34 @@ class ProductImportMapper(ImportMapper):
         if record['type_id'] == 'bundle':
             bundle_mapper = self.unit_for(BundleProductImportMapper)
             return bundle_mapper.map_record(record).values(**self.options)
+
+
+@shopware
+class ArticleImporter(ShopwareImporter):
+    _model_name = ['shopware.article']
+
+    _base_mapper = ArticleImportMapper
+
+    def _import_dependencies(self):
+        """ Import the dependencies for the record"""
+        record = self.shopware_record
+        for sw_category in record['categories']:
+            self._import_dependency(sw_category['id'],
+                                    'shopware.product.category')
+
+    def _after_import(self, binding):
+        """ Hook called at the end of the import """
+
+        record = self.shopware_record
+        product_model = 'shopware.product.product'
+
+        # create batchjob for the main detail
+        sw_main_detail_id = record['mainDetail']['id']
+        import_record.delay(self.session, product_model, self.backend_record.id, sw_main_detail_id)
+
+        # create batchjob for the remaining details
+        for sw_detail in record['details']:
+            import_record.delay(self.session, product_model, self.backend_record.id, sw_detail['id'])
 
 
 @shopware
