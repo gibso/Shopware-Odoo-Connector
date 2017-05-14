@@ -157,8 +157,9 @@ class ProductCategoryBatchImporter(DelayedBatchImporter):
         else:
             updated_ids = None
 
+        highest_id = max(updated_ids)
         for record_id in updated_ids:
-            self._import_record(record_id)
+            self._import_record(record_id, priority=highest_id-record_id)
 
 
 ProductCategoryBatchImport = ProductCategoryBatchImporter  # deprecated

@@ -511,7 +511,7 @@ class ShopAdapter(GenericAdapter):
 class MetadataBatchImporter(DirectBatchImporter):
     """ Import the records directly, without delaying the jobs.
 
-    Import the Shopware Shops, Shops, Shops
+    Import the Shopware Shops
 
     They are imported directly because this is a rare and fast operation,
     and we don't really bother if it blocks the UI during this time.
