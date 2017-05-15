@@ -189,22 +189,30 @@ class PartnerAdapter(GenericAdapter):
         if filters is None:
             filters = {}
 
-        dt_fmt = MAGENTO_DATETIME_FORMAT
+        index = 0
         if from_date is not None:
-            # updated_at include the created records
-            filters.setdefault('updated_at', {})
-            filters['updated_at']['from'] = from_date.strftime(dt_fmt)
+            filters[index] = {
+                'property': 'lastLogin',
+                'expression': '>=',
+                'value': from_date.isoformat()
+            }
+            index += 1
         if to_date is not None:
-            filters.setdefault('updated_at', {})
-            filters['updated_at']['to'] = to_date.strftime(dt_fmt)
+            filters[index] = {
+                'property': 'lastLogin',
+                'expression': '<=',
+                'value': to_date.isoformat()
+            }
+            index += 1
         if shopware_shop_ids is not None:
-            index = 0
-            for shopware_shop_id in shopware_shop_ids:
+            for i, shopware_shop_id in enumerate(shopware_shop_ids):
                 filters[index] = {
                     'property': 'shopId',
-                    'value': int(shopware_shop_id),
-                    'operator': 1
+                    'value': int(shopware_shop_id)
                 }
+                if i < len(shopware_shop_ids) - 1:
+                    filters[index].append({'operator': 1})
+
                 index += 1
 
         return super(PartnerAdapter, self).search(filters)
