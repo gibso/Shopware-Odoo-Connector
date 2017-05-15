@@ -262,30 +262,8 @@ class ProductProductAdapter(GenericAdapter):
     _model_name = 'shopware.product.product'
     _shopware_model = 'variants'
 
-    def search(self, filters=None, from_date=None, to_date=None):
-        """ Search records according to some criteria
-        and returns a list of ids
-
-        :rtype: list
-        """
-        if filters is None:
-            filters = {}
-        dt_fmt = MAGENTO_DATETIME_FORMAT
-        if from_date is not None:
-            filters.setdefault('updated_at', {})
-            filters['updated_at']['from'] = from_date.strftime(dt_fmt)
-        if to_date is not None:
-            filters.setdefault('updated_at', {})
-            filters['updated_at']['to'] = to_date.strftime(dt_fmt)
-        # TODO add a search entry point on the Shopware API
-        return [int(row['product_id']) for row
-                in self._call('%s.list' % self._shopware_model,
-                              [filters] if filters else [{}])]
-
     def write(self, id, data, shop_id=None):
         """ Update records on the external system """
-        # XXX actually only ol_catalog_product.update works
-        # the PHP connector maybe breaks the catalog_product.update
         return self._call('ol_catalog_product.update',
                           [int(id), data, shop_id, 'id'])
 
