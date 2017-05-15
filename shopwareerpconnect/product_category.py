@@ -106,8 +106,8 @@ class ProductCategoryAdapter(GenericAdapter):
                 'value': to_date.isoformat()
             }
 
-        return self._call('%sSearch' % self._shopware_model,
-                          {'filter': filters} if filters else {})
+        return super(ProductCategoryAdapter, self).search(filters)
+
 
     def move(self, categ_id, parent_id, after_categ_id=None):
         return self._call('%s.move' % self._shopware_model,
