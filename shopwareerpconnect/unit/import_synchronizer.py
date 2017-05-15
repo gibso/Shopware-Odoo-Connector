@@ -77,7 +77,7 @@ class ShopwareImporter(Importer):
             return
         from_string = fields.Datetime.from_string
         sync_date = from_string(sync)
-        shopware_date = from_string(self.shopware_record['changed'])
+        shopware_date = from_string(self.shopware_record['changed'].replace('T', ' '))
         # if the last synchronization date is greater than the last
         # update in shopware, we skip the import.
         # Important: at the beginning of the exporters flows, we have to

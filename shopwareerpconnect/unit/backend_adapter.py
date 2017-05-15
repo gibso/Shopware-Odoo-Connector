@@ -173,7 +173,7 @@ class GenericAdapter(ShopwareCRUDAdapter):
         :rtype: list
         """
         return self._call('%sSearch' % self._shopware_model,
-                          filters if filters else {})
+                          {'filter': filters} if filters else {})
 
     def read(self, id, attributes=None):
         """ Returns the information of a record

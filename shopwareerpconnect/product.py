@@ -253,8 +253,8 @@ class ArticleAdapter(GenericAdapter):
                 'value': to_date.isoformat()
             }
 
-        return self._call('%sSearch' % self._shopware_model,
-                          {'filter': filters} if filters else {})
+        return super(ArticleAdapter, self).search(filters)
+
 
 
 @shopware

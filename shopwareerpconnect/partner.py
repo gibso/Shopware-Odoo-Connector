@@ -166,7 +166,7 @@ class ShopwareAddress(models.Model):
 @shopware
 class PartnerAdapter(GenericAdapter):
     _model_name = 'shopware.res.partner'
-    _shopware_model = 'customer'
+    _shopware_model = 'customers'
 
     def _call(self, method, arguments):
         try:
@@ -198,11 +198,16 @@ class PartnerAdapter(GenericAdapter):
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
         if shopware_shop_ids is not None:
-            filters['shop_id'] = {'in': shopware_shop_ids}
+            index = 0
+            for shopware_shop_id in shopware_shop_ids:
+                filters[index] = {
+                    'property': 'shopId',
+                    'value': int(shopware_shop_id),
+                    'operator': 1
+                }
+                index += 1
 
-        # the search method is on ol_customer instead of customer
-        return self._call('ol_customer.search',
-                          [filters] if filters else [{}])
+        return super(PartnerAdapter, self).search(filters)
 
 
 @shopware
