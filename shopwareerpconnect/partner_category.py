@@ -57,7 +57,6 @@ class ShopwareResPartnerCategory(models.Model):
 class PartnerCategoryAdapter(GenericAdapter):
     _model_name = 'shopware.res.partner.category'
     _shopware_model = 'ol_customer_groups'
-    _admin_path = '/customer_group/edit/id/{id}'
 
     def search(self, filters=None):
         """ Search records according to some criterias

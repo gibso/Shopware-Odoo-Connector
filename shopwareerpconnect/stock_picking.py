@@ -71,7 +71,6 @@ class StockPicking(models.Model):
 class StockPickingAdapter(GenericAdapter):
     _model_name = 'shopware.stock.picking'
     _shopware_model = 'sales_order_shipment'
-    _admin_path = 'sales_shipment/view/shipment_id/{id}'
 
     def _call(self, method, arguments):
         try:

@@ -75,7 +75,6 @@ class AccountInvoiceAdapter(GenericAdapter):
     """ Backend Adapter for the Shopware Invoice """
     _model_name = 'shopware.account.invoice'
     _shopware_model = 'sales_order_invoice'
-    _admin_path = 'sales_invoice/view/invoice_id/{id}'
 
     def _call(self, method, arguments):
         try:

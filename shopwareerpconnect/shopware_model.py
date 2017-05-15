@@ -506,7 +506,6 @@ class ShopwareShop(models.Model):
 class ShopAdapter(GenericAdapter):
     _model_name = 'shopware.shop'
     _shopware_model = 'shops'
-    _admin_path = 'system_shop/editShop/shop_id/{id}'
 
 
 @shopware

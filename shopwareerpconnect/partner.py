@@ -167,7 +167,6 @@ class ShopwareAddress(models.Model):
 class PartnerAdapter(GenericAdapter):
     _model_name = 'shopware.res.partner'
     _shopware_model = 'customer'
-    _admin_path = '/{model}/edit/id/{id}'
 
     def _call(self, method, arguments):
         try:

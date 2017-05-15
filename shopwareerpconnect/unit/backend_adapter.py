@@ -165,7 +165,6 @@ class GenericAdapter(ShopwareCRUDAdapter):
 
     _model_name = None
     _shopware_model = None
-    _admin_path = None
 
     def search(self, filters=None):
         """ Search records according to some criterias

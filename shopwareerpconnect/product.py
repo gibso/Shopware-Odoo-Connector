@@ -261,7 +261,6 @@ class ArticleAdapter(GenericAdapter):
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'shopware.product.product'
     _shopware_model = 'variants'
-    _admin_path = '/{model}/edit/id/{id}'
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria

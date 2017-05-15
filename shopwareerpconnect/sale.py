@@ -267,7 +267,6 @@ class SaleOrderLine(models.Model):
 class SaleOrderAdapter(GenericAdapter):
     _model_name = 'shopware.sale.order'
     _shopware_model = 'sales_order'
-    _admin_path = '{model}/view/order_id/{id}'
 
     def _call(self, method, arguments):
         try:

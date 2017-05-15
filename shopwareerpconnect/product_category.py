@@ -76,7 +76,6 @@ class ProductCategory(models.Model):
 class ProductCategoryAdapter(GenericAdapter):
     _model_name = 'shopware.product.category'
     _shopware_model = 'categories'
-    _admin_path = '/{model}/index/'
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
