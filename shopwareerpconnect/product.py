@@ -463,6 +463,11 @@ class ArticleImportMapper(ImportMapper):
             default_categ = self.backend_record.default_category_id
             if default_categ:
                 main_categ_id = default_categ.id
+            else:
+                # The article has no categories, and there is no default category set
+                # so take the root category, which has in Shopware always the id 1
+                main_categ_id = binder.to_openerp(1, unwrap=True)
+
 
         result = {'categ_ids': [(6, 0, category_ids)]}
         if main_categ_id:  # OpenERP assign 'All Products' if not specified

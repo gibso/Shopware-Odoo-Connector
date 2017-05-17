@@ -198,6 +198,7 @@ ProductCategoryImport = ProductCategoryImporter  # deprecated
 class ProductCategoryImportMapper(ImportMapper):
     _model_name = 'shopware.product.category'
 
+    @mapping
     def name(self, record):
         if not record.get('parentId'):  # top level category in Shopware is named "Root", better take the backend name
             return {'name': self.backend_record.name}
