@@ -79,9 +79,12 @@ def output_recorder(filename):
 class ShopwareLocation(object):
 
     def __init__(self, location, username, token):
-        self._location = location + 'api/'
         self.username = username
         self.token = token
+
+        if not location.endswith('/'):
+            location += '/'
+        self._location = location + 'api/'
 
     @property
     def location(self):
