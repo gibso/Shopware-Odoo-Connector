@@ -266,7 +266,7 @@ class SaleOrderLine(models.Model):
 @shopware
 class SaleOrderAdapter(GenericAdapter):
     _model_name = 'shopware.sale.order'
-    _shopware_model = 'sales_order'
+    _shopware_model = 'orders'
 
     def _call(self, method, arguments):
         try:

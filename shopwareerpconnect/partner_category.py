@@ -50,23 +50,13 @@ class ShopwareResPartnerCategory(models.Model):
                                  required=True,
                                  ondelete='cascade')
     # TODO : replace by a m2o when tax class will be implemented
-    tax_class_id = fields.Integer(string='Tax Class ID')
+    # tax_class_id = fields.Integer(string='Tax Class ID')
 
 
 @shopware
 class PartnerCategoryAdapter(GenericAdapter):
     _model_name = 'shopware.res.partner.category'
-    _shopware_model = 'ol_customer_groups'
-
-    def search(self, filters=None):
-        """ Search records according to some criterias
-        and returns a list of ids
-
-        :rtype: list
-        """
-        return [int(row['customer_group_id']) for row
-                in self._call('%s.list' % self._shopware_model,
-                              [filters] if filters else [{}])]
+    _shopware_model = 'CustomerGroups'
 
 
 @shopware
@@ -83,13 +73,14 @@ class PartnerCategoryImportMapper(ImportMapper):
     _model_name = 'shopware.res.partner.category'
 
     direct = [
-        ('customer_group_code', 'name'),
-        ('tax_class_id', 'tax_class_id'),
+        ('key', 'name'),
+        #TODO: find a similar field in Shopware
+        # ('tax_class_id', 'tax_class_id'),
     ]
 
     @mapping
     def shopware_id(self, record):
-        return {'shopware_id': record['customer_group_id']}
+        return {'shopware_id': record['id']}
 
     @mapping
     def backend_id(self, record):
@@ -100,7 +91,7 @@ class PartnerCategoryImportMapper(ImportMapper):
     def openerp_id(self, record):
         """ Will bind the category on a existing one with the same name."""
         existing = self.env['res.partner.category'].search(
-            [('name', '=', record['customer_group_code'])],
+            [('name', '=', record['key'])],
             limit=1,
         )
         if existing:

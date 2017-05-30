@@ -555,7 +555,7 @@ class CompanyImportMapper(BaseAddressImportMapper):
 @shopware
 class AddressAdapter(GenericAdapter):
     _model_name = 'shopware.address'
-    _shopware_model = 'customer_address'
+    _shopware_model = 'addresses'
 
     def search(self, filters=None):
         """ Search records according to some criterias
