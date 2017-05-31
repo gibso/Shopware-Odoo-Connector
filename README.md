@@ -1,8 +1,8 @@
 # Shopware-Odoo-Connector
 
 Dies ist der erste Prototyp des Shopware-Odoo-Konnektors.
-Im Rahmen einer wissenschaftlichen Arbeit wurde dieser aus dem Magento-Odoo-Konnektor von `Camptocamp`_ migriert.
-Er basiert auf dem `connector`_ Framework und ist `verfügbar auf GitHub`_.
+Im Rahmen einer wissenschaftlichen Arbeit wurde dieser aus dem Magento-Odoo-Konnektor von [Camptocamp](http://www.camptocamp.com) migriert.
+Er basiert auf dem `connector`_ Framework von Camptocamp und ist `verfügbar auf GitHub`_.
 
 Bisherige Features:
 
@@ -23,20 +23,18 @@ Technische Punkte:
 .. _`verfügbar auf GitHub`: https://github.com/gibso/Shopware-Odoo-Connector
 
 
-Installation
-============
+## Installation
 
 Lesen Sie die Installationsanleitung auf GitHub:
 https://github.com/gibso/Shopware-Odoo-Connector
 
-Konfiguration and Verwendung
-============================
+## Konfiguration and Verwendung
 
 Lesen Sie irgendwas auf GitHub:
 https://github.com/gibso/Shopware-Odoo-Connector
 
-Autor
-=====
+## Autor
+
 Entwickelt von `Oliver Görtz`_.
 
 .. _`Oliver Görtz`: https://www.xing.com/profile/Oliver_Goertz9
