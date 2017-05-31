@@ -2,7 +2,7 @@
 
 Dies ist der erste Prototyp des Shopware-Odoo-Konnektors.
 Im Rahmen einer wissenschaftlichen Arbeit wurde dieser aus dem Magento-Odoo-Konnektor von [Camptocamp](http://www.camptocamp.com) migriert.
-Er basiert auf dem `connector`_ Framework von Camptocamp und ist `verfügbar auf GitHub`_.
+Er basiert auf dem [Connector-Framework](https://github.com/OCA/connector) von Camptocamp und ist [verfügbar auf GitHub](https://github.com/gibso/Shopware-Odoo-Connector).
 
 Bisherige Features:
 
@@ -13,37 +13,23 @@ Bisherige Features:
 
 Technische Punkte:
 
-* Gebaut auf dem `connector`_ Framework
-* Verwendet das Job-System des `connector`_ Frameworks
+* Gebaut auf dem [Connector-Framework](https://github.com/OCA/connector)
+* Verwendet das Job-System des [Connector-Frameworks](https://github.com/OCA/connector)
 * Unterstützt bisher Shopware 5.2+
-
-
-.. _connector: https://github.com/OCA/connector
-.. _Camptocamp: http://www.camptocamp.com
-.. _`verfügbar auf GitHub`: https://github.com/gibso/Shopware-Odoo-Connector
-
 
 ## Installation
 
-Lesen Sie die Installationsanleitung auf GitHub:
-https://github.com/gibso/Shopware-Odoo-Connector
+Lesen Sie die [Installationsanleitung](https://github.com/gibso/Shopware-Odoo-Connector/blob/master/shopwareerpconnect/doc/Installation.md) auf GitHub.
 
 ## Konfiguration and Verwendung
 
-Lesen Sie irgendwas auf GitHub:
-https://github.com/gibso/Shopware-Odoo-Connector
+Lesen Sie die [Konfigurationsanleitung](https://github.com/gibso/Shopware-Odoo-Connector/blob/master/shopwareerpconnect/doc/Konfiguration.md) auf GitHub.
 
 ## Autor
 
-Entwickelt von `Oliver Görtz`_.
+Entwickelt von [Oliver Görtz](https://www.xing.com/profile/Oliver_Goertz9).
 
-.. _`Oliver Görtz`: https://www.xing.com/profile/Oliver_Goertz9
-
-Sie können mich über `GitHub`_, `XING`_ und `Facebook`_ erreichen.
-
-.. _`GitHub`: https://github.com/gibso
-.. _`XING`: https://www.xing.com/profile/Oliver_Goertz9
-.. _`Facebook`: https://www.facebook.com/ogoertz
+Sie können mich über [GitHub](https://github.com/gibso), [XING](https://www.xing.com/profile/Oliver_Goertz9) und [Facebook](https://www.facebook.com/ogoertz) erreichen.
 
 
 
