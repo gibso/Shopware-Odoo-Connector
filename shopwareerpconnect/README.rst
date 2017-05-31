@@ -2,8 +2,8 @@ Shopware Connector
 ==================
 
 Dies ist der erste Prototyp des Shopware-Odoo-Konnektors.
-Im Rahmen einer wissenschaftlichen Arbeit wurde dieser aus dem Magento-Odoo-Konnektor von `Camptocamp`_ migriert.
-Er basiert auf dem `connector`_ Framework und ist `verfügbar auf GitHub`_.
+Im Rahmen einer wissenschaftlichen Arbeit wurde dieser aus dem `Magento-Odoo-Konnektor`_ von `Camptocamp`_ migriert.
+Er basiert auf dem `Connector`_ Framework und ist `verfügbar auf GitHub`_.
 
 Bisherige Features:
 
@@ -18,7 +18,8 @@ Technische Punkte:
 * Verwendet das Job-System des `connector`_ Frameworks
 * Unterstützt bisher Shopware 5.2+
 
-.. _connector: https://github.com/OCA/connector
+.. _Magento-Odoo-Konnektor: http://odoo-magento-connector.com/
+.. _Connector: https://github.com/OCA/connector
 .. _Camptocamp: http://www.camptocamp.com
 .. _`verfügbar auf GitHub`: https://github.com/gibso/Shopware-Odoo-Connector
 
