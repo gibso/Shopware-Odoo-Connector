@@ -16,7 +16,7 @@ Technische Punkte:
 
 * Gebaut auf dem `connector`_ Framework
 * Verwendet das Job-System des `connector`_ Frameworks
-* Unterstützt bisher Shopware 5.2+
+* Unterstützt bisher Shopware 5.2+ und Odoo 8.0
 
 .. _Magento-Odoo-Konnektor: http://odoo-magento-connector.com/
 .. _Connector: https://github.com/OCA/connector

@@ -15,7 +15,7 @@ Technische Punkte:
 
 * Gebaut auf dem [Connector-Framework](https://github.com/OCA/connector)
 * Verwendet das Job-System des [Connector-Frameworks](https://github.com/OCA/connector)
-* Unterstützt bisher Shopware 5.2+
+* Unterstützt bisher Shopware 5.2+ und Odoo 8.0
 
 # Installation
 
