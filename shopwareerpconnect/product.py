@@ -550,13 +550,13 @@ class ArticleImporter(ShopwareImporter):
         record = self.shopware_record
         product_model = 'shopware.product.product'
 
-        # create batchjob for the main detail
+        # import the main detail directly
         sw_main_detail_id = record['mainDetail']['id']
-        import_record.delay(self.session, product_model, self.backend_record.id, sw_main_detail_id)
+        import_record(self.session, product_model, self.backend_record.id, sw_main_detail_id)
 
-        # create batchjob for the remaining details
+        # import remaining details directly
         for sw_detail in record['details']:
-            import_record.delay(self.session, product_model, self.backend_record.id, sw_detail['id'])
+            import_record(self.session, product_model, self.backend_record.id, sw_detail['id'])
 
 
 @shopware

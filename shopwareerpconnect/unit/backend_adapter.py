@@ -144,7 +144,7 @@ class ShopwareCRUDAdapter(CRUDAdapter):
                                   self.shopware.location)
             result = client.call(resource, method, arguments, arguments)
 
-            if not result:
+            if type(result) is type(bool) and result is False:
                 raise NetworkRetryableError(
                     'Shopware API could not be reached.'
                 )
