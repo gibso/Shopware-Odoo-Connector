@@ -12,6 +12,14 @@ Bisherige Features:
 * Import der Artikel, mit Varianten
 * Export der Bestandsmengen von bestehenden Varianten, mit Konfiguration des Lagerhauses und der Auswahl des zu benutzenden Bestand-Feldes
 
+Bisher (noch) nicht unterstützte Features:
+
+* Import der Kundendaten
+* Import der Kundengruppen
+* Import der Artikelbilder
+* Import der Bestell-Aufträge
+* Export des Lieferstatus von bestehenden Bestell-Aufträgen
+
 Technische Punkte:
 
 * Gebaut auf dem `connector`_ Framework

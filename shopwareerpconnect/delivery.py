@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Authors: Guewen Baconnier, Sébastien Beau
+#    Authors: Guewen Baconnier, Sébastien Beau, Oliver Görtz
 #    Copyright (C) 2010 BEAU Sébastien
 #    Copyright 2011-2013 Camptocamp SA
 #

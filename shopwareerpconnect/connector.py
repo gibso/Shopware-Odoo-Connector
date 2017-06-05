@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Author: Guewen Baconnier
-#    Copyright 2013-2015 Camptocamp SA
+#    Authors: Guewen Baconnier, Oliver Görtz
+#    Copyright 2013-2015 Camptocamp SA, Oliver Görtz
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as

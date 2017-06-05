@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Author: Joel Grand-Guillaume
-#    Copyright 2013 Camptocamp SA
+#    Authors: Joel Grand-Guillaume, Oliver Görtz
+#    Copyright 2013 Camptocamp SA, Oliver Görtz
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as

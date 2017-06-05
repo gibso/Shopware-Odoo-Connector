@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Author: Guewen Baconnier, David Beal
+#    Authors: Guewen Baconnier, David Beal, Oliver Görtz
 #    Copyright 2013 Camptocamp SA
 #    Copyright 2013 Akretion
 #

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Author: Guewen Baconnier
-#    Copyright 2013 Camptocamp SA
+#    Authors: Guewen Baconnier, Oliver Görtz
+#    Copyright 2013 Camptocamp SA, Oliver Görtz
 #    Copyright 2013 Akretion
 #
 #    This program is free software: you can redistribute it and/or modify
