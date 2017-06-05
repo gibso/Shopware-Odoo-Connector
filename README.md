@@ -31,7 +31,7 @@ Technische Punkte:
 Bisher wird nur Shopware 5.2+ von dem Konnektor unterstützt.
 
 ### Plugin zur API Erweiterung
- Shopware muss mit dem Plugin *OdooApiExtension* erweitert werden. Das Plugin kann von GitHub mit dem Befehl
+ Shopware muss mit dem Plugin [*OdooApiExtension*](https://github.com/gibso/sw-OdooApiExtension) erweitert werden. Das Plugin kann von GitHub mit dem Befehl
 ```
 $ git clone git@github.com:gibso/OdooApiExtension.git
 ```
